@@ -1,28 +1,36 @@
 {
-  "name": "foo",
+  "name": "scaffy",
   "version": "1.0.0",
+  "type": "module",
   "description": "This is a simple CLI tool that allows you to bootstrap your projects with your own custom configuration. Sure we have CRA, and whatever the Vue equivalent of that is, but sometimes we have configuration files we would like to reuse. For instance, eslint, sure there is the `init` command but that only gives you the defaults. In such a case you would need to scour your previous projects (or the internet) for all the packages you want to install then manually copy over your custom bulletproof eslint config. This projects intends to be a panacea to that problem!",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "invoke": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "Olaoluwa Mustapha <jomeemustapha@gmail.com>",
   "license": "ISC",
   "devDependencies": {
+    "@types/eslint-config-prettier": "^6.11.0",
     "@types/typescript": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.25.4",
     "prettier": "^2.5.1",
+    "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "zx": "^4.3.0"
+    "@types/ora": "^3.2.0",
+    "ora": "^6.0.1",
+    "zx": "^5.0.0"
   }
 }

@@ -1,38 +1,26 @@
 #!/usr/bin/env zx
-/* global path, fs, chalk, argv */
+/* global path, fs */
 
 import 'zx/globals';
 
-interface SingleConfigEntry {
-  [toolName: string]: {
-    deps: string[];
-    devDeps: string[];
-    remoteConfigurations: string[];
-    localConfigurations: string[];
-  };
-}
+import { CliApi } from './constants.js';
+import {
+  error,
+  genericErrorHandler,
+  info,
+  outputHelp,
+  parseArguments,
+} from './helpers.js';
 
-interface Dependencies {
-  [depName: string]: string;
-}
+import type { CliApiString } from './constants.js';
+import type { ProjectDependencies, SamplePackageJson } from './globals';
 
-interface SamplePackageJson {
-  dependencies: Dependencies;
-  devDependencies: Dependencies;
-}
-
-interface ProjectDependencies {
-  deps: Dependencies;
-  devDeps: Dependencies;
-}
-
-const { exit: killWithExitCode } = process;
 const projectRootDir = path.resolve('./');
 
 (async () => {
   const installedPackages = await retrieveProjectDependencies();
-  const toolsToBootstrap = parseCLIArgs();
-  console.log(toolsToBootstrap);
+  const [command, ...toolNames] = parseArguments();
+  cli(command, installedPackages, toolNames);
 })();
 
 async function retrieveProjectDependencies(): Promise<ProjectDependencies> | never {
@@ -42,20 +30,49 @@ async function retrieveProjectDependencies(): Promise<ProjectDependencies> | nev
     )) as SamplePackageJson;
 
     return {
+      version: packageJsonObject.version,
       deps: packageJsonObject.dependencies,
       devDeps: packageJsonObject.devDependencies,
     };
   } catch {
-    error('Failed to retrieve dependencies');
-    error("Looks like there isn't a package.json file in your project yet");
-    return killWithExitCode(1);
+    return handleDepsRetrievalError();
   }
 }
 
-function parseCLIArgs(): string[] {
-  return process.argv.slice(2);
+function handleDepsRetrievalError(): never {
+  error('Failed to retrieve dependencies');
+  error("Looks like there isn't a package.json file in your project yet");
+  error('Please make sure to run this in the root directory of your project');
+  return process.exit(1);
 }
 
-function error(msg: string) {
-  console.error(chalk.red.bold(msg));
+async function cli(
+  command: CliApiString,
+  projectInfo: ProjectDependencies,
+  tools: string[]
+) {
+  switch (command) {
+    case CliApi.install:
+    case CliApi.i:
+      info('Not Implemented');
+      break;
+
+    case CliApi.uninstall:
+    case CliApi.un:
+      info('Not Implemented');
+      break;
+
+    case CliApi['--help']:
+    case CliApi['-h']:
+      outputHelp();
+      break;
+
+    case CliApi['--version']:
+    case CliApi['-v']:
+      info(projectInfo.version);
+      break;
+
+    default:
+      genericErrorHandler(`Whoops, ${command} is not a supported command`);
+  }
 }
