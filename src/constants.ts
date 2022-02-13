@@ -1,3 +1,9 @@
+#!/usr/bin/env zx
+/* global path */
+
+import 'zx/globals';
+import { fileURLToPath } from 'url';
+
 enum Commands {
   install = 'install',
   uninstall = 'uninstall',
@@ -22,23 +28,5 @@ export type ParsedArguments = [CliApiString, ...string[]];
 
 export const cliApiStrings = Object.keys(CliApi) as CliApiString[];
 
-export const helpString = `
-DESCRIPTION
-  scaffy is a CLI application that helps you bootstrap your favorite tools with your custom configurations
-
-USAGE:
-  scaffy (command|aliases) <argument>...
-  scaffy options
-
-COMMANDS:
-  install <tool>...          Bootstraps <tool> with your custom configuration
-  uninstall <tool>...        Removes custom configurations for <tool>
-
-Aliases:
-  i                       Alias for install
-  un                      Alias for uninstall
-
-Options:
-  -h --help                   Show this message.
-  -v --version                Output version information.
-`;
+const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(__filename);

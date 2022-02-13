@@ -1,4 +1,4 @@
-export interface SingleConfigEntry {
+export interface ConfigSchema {
   [toolName: string]: {
     deps: string[];
     devDeps: string[];
