@@ -1,20 +1,14 @@
-import outPutCliVersion from './cmds/version/index.js';
+import install from './cmds/install/index';
+import outPutCliVersion from './cmds/version/index';
 
-import { CliApiString, CliApi } from './constants.js';
-import { info, outputHelp, genericErrorHandler } from './utils.js';
+import { CliApiString, CliApi } from './constants';
+import { info, outputHelp, genericErrorHandler } from './utils';
 
-import type { ConfigSchema, ProjectDependencies } from './globals';
-
-export default async function cli(
-  command: CliApiString,
-  scaffyConfigObj: ConfigSchema,
-  projectInfo: ProjectDependencies,
-  tools: string[]
-) {
+export default async function cli(command: CliApiString, tools: string[]) {
   switch (command) {
     case CliApi.install:
     case CliApi.i:
-      info('Not Implemented');
+      await install(tools);
       break;
 
     case CliApi.uninstall:

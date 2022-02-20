@@ -22,3 +22,14 @@ export interface ProjectDependencies {
   deps: Dependencies;
   devDeps: Dependencies;
 }
+
+export type Primitive = string | number;
+
+export type AnyObject = Record<Primitive, unknown>;
+
+export enum InstallationStatus {
+  Installed = 'Installed',
+  Uninstalled = 'Uninstalled',
+}
+
+export type MultiLineString = string & { _type: 'multiLine' };

@@ -25,7 +25,7 @@ module.exports = {
     },
   },
 
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'jest'],
 
   rules: {
     'no-console': 0,

@@ -1,26 +1,13 @@
 #!/usr/bin/env zx
-/* global path */
+/* global */
 
 import 'zx/globals';
 
-import cli from './cli.js';
+import cli from './cli';
 
-import {
-  parseArguments,
-  parseScaffyConfig,
-  retrieveProjectDependencies,
-} from './helpers.js';
-
-const projectRootDir = path.resolve('./');
+import { parseArguments } from './helpers';
 
 (async () => {
-  const installedPackages = await retrieveProjectDependencies(
-    `${projectRootDir}/package.json`
-  );
-
-  // TODO We only want to check for a scaffy config for the commands that require it
-  const scaffyConfigObj = {};
-
   const [command, ...toolNames] = parseArguments();
-  cli(command, scaffyConfigObj, installedPackages, toolNames);
+  cli(command, toolNames);
 })();
