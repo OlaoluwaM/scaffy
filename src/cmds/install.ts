@@ -3,11 +3,11 @@
 
 import 'zx/globals';
 
-import { doesObjectHaveProperty, error, info } from '../../utils';
-import { parseScaffyConfig, retrieveProjectDependencies } from '../../helpers';
-import { projectRootDir } from '../../constants';
+import { doesObjectHaveProperty, error, info } from '../utils';
+import { parseScaffyConfig, retrieveProjectDependencies } from '../helpers';
+import { projectRootDir } from '../constants';
 
-import type { ConfigSchema, ProjectDependencies } from '../../compiler/types';
+import type { ConfigSchema, ProjectDependencies } from '../compiler/types';
 
 export default async function install(tools: string[]) {
   const scaffyConf = await parseScaffyConfig(`${projectRootDir}/scaffy.config`);

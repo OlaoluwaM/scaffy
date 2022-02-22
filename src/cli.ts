@@ -1,5 +1,5 @@
-import install from './cmds/install/index';
-import outPutCliVersion from './cmds/version/index';
+import install from './cmds/install';
+import outPutCliVersion from './cmds/version';
 
 import { CliApiString, CliApi } from './constants';
 import { info, outputHelp, genericErrorHandler } from './utils';

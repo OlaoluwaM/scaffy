@@ -12,7 +12,9 @@
     "prebuild": "rm -rf dist",
     "build": "tsc",
     "postbuild": "node ./fixCompiledImports.mjs",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --",
+    "test:silent": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:single": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern --"
   },
   "keywords": [],
   "author": "Olaoluwa Mustapha <jomeemustapha@gmail.com>",

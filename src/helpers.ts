@@ -7,21 +7,21 @@ import fsPromise from 'fs/promises';
 
 import { ProcessOutput } from 'zx';
 import { ParsedArguments, cliApiStrings, projectRootDir } from './constants';
-import {
-  ConfigSchema,
-  SamplePackageJson,
-  InstallationStatus,
-  ProjectDependencies,
-} from './compiler/types';
+import { ConfigSchema, ProjectDependencies, Dependencies } from './compiler/types';
 import {
   error,
   getCliArguments,
-  checkForCommand,
+  isCommandAvailable,
   toMultiLineString,
   genericErrorHandler,
   includedInCollection,
 } from './utils';
 
+interface SamplePackageJson {
+  version: string;
+  dependencies: Dependencies;
+  devDependencies: Dependencies;
+}
 export async function retrieveProjectDependencies(
   path: string
 ): Promise<ProjectDependencies> | never {
