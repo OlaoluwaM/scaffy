@@ -10,8 +10,8 @@
   "scripts": {
     "invoke": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
     "prebuild": "rm -rf dist",
-    "build": "tsc",
-    "postbuild": "node ./fixCompiledImports.mjs",
+    "build": "tsc -p ./tsconfig.prod.json",
+    "postbuild": "node ../compiled-ts-import-patch/src/index.mjs ./dist",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --",
     "test:silent": "NODE_OPTIONS=--experimental-vm-modules jest --silent",
     "test:single": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern --"
