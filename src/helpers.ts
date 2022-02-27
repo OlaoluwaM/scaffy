@@ -1,21 +1,23 @@
 #!/usr/bin/env zx
-/* global fs, $ */
+/* global fs */
 
 import 'zx/globals';
 
-import fsPromise from 'fs/promises';
+import outputHelp from './cmds/help';
 
-import { ProcessOutput } from 'zx';
-import { ParsedArguments, cliApiStrings, projectRootDir } from './constants';
-import { ConfigSchema, ProjectDependencies, Dependencies } from './compiler/types';
+import { error, filterOutPaths, includedInCollection, pipe } from './utils';
 import {
-  error,
-  getCliArguments,
-  isCommandAvailable,
-  toMultiLineString,
-  genericErrorHandler,
-  includedInCollection,
-} from './utils';
+  ConfigSchema,
+  ProjectDependencies,
+  Dependencies,
+  ExitCodes,
+} from './compiler/types';
+import {
+  CliApiObj,
+  RawCliArgs,
+  ParsedArguments,
+  CliCommandsOptionsAliasesString,
+} from './constants';
 
 interface SamplePackageJson {
   version: string;
@@ -59,17 +61,7 @@ function handleConfigParseError(): never {
   return process.exit(1);
 }
 
-export function parseArguments(): ParsedArguments | never {
-  const cliArgs = getCliArguments();
-
-  if (includedInCollection(cliApiStrings, cliArgs[0])) {
-    return cliArgs as ParsedArguments;
-  }
-
-  return genericErrorHandler(`${cliArgs[0]} is not a supported command`);
-}
-
-export function determineAvailableToolsFromInput(
+export function determineAvailableToolsFromScaffyConfig(
   scaffyConfig: ConfigSchema,
   requestedToolNames: string[]
 ): string[] {
@@ -77,46 +69,12 @@ export function determineAvailableToolsFromInput(
   return requestedToolNames.filter(toolName => toolsInConfig.includes(toolName));
 }
 
-// async function downloadRemoteConfigs(urls: string[]) {
-//   const wgetInstallStatus = await checkForCommand('wget');
-//   const curlInstallStatus = await checkForCommand('curl');
-
-//   if (curlInstallStatus === InstallationStatus.Installed) {
-//     downloadWithCurl(urls);
-//   } else if (wgetInstallStatus === InstallationStatus.Installed) {
-//     downloadWithWget(urls);
-//   } else throw new Error(`Neither curl or wget are installed`);
-// }
-
-// async function downloadWithWget(urls: string[]) {
-//   const WGET_URL_FILENAME = 'temp-urls.txt';
-//   const WGET_URL_FILE_PATH = `${projectRootDir}/${WGET_URL_FILENAME}`;
-
-//   await createTempUrlFileForWgetDownload(WGET_URL_FILENAME, urls);
-
-//   try {
-//     await $`wget -i ${WGET_URL_FILE_PATH}`;
-//   } catch (processError) {
-//     throw new Error(
-//       `Error Downloading with wget: ${(processError as ProcessOutput).stderr}`
-//     );
-//   } finally {
-//   }
-// }
-
-// async function deleteTempUrlListFile(path: string) {
-//   try {
-//     await $`rm ${path}`;
-//   } catch (error) {}
-// }
-
-// // Wget accepts a file of multiline urls as argument for multiple downloads
-// async function createTempUrlListFileForWgetDownload(filename: string, urls: string[]) {
-//   const multilineUrlString = toMultiLineString(urls);
-
-//   try {
-//     await fsPromise.writeFile(`${projectRootDir}/${filename}`, multilineUrlString);
-//   } catch {
-//     throw new Error('Could not create temp-urls file for wget download');
-//   }
-// }
+export function genericErrorHandler(
+  msg: string,
+  displayHelp: boolean = true,
+  exitCode = ExitCodes.GENERAL
+): never {
+  error(msg);
+  if (displayHelp) outputHelp();
+  return process.exit(exitCode);
+}

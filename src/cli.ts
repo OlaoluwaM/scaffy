@@ -1,28 +1,33 @@
 import install from './cmds/install';
 import outPutCliVersion from './cmds/version';
 
-import { CliApiString, CliApi } from './constants';
-import { info, outputHelp, genericErrorHandler } from './utils';
+import { info } from './utils';
+import { CliApiObj, ParsedArguments } from './constants';
 
-export default async function cli(command: CliApiString, tools: string[]) {
+export default async function cli(
+  parsedArguments: ParsedArguments,
+  cliApi: typeof CliApiObj
+) {
+  const { command, pathToScaffyConfig, tools } = parsedArguments;
+
   switch (command) {
-    case CliApi.install:
-    case CliApi.i:
-      await install(tools);
+    case cliApi.install:
+    case cliApi.i:
+      // await install(tools);
       break;
 
-    case CliApi.uninstall:
-    case CliApi.un:
+    case cliApi.uninstall:
+    case cliApi.un:
       info('Not Implemented');
       break;
 
-    case CliApi['--help']:
-    case CliApi['-h']:
+    case cliApi['--help']:
+    case cliApi['-h']:
       outputHelp();
       break;
 
-    case CliApi['--version']:
-    case CliApi['-v']:
+    case cliApi['--version']:
+    case cliApi['-v']:
       await outPutCliVersion();
       break;
 

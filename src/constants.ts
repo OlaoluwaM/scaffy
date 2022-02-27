@@ -7,11 +7,12 @@ import { fileURLToPath } from 'url';
 enum Commands {
   install = 'install',
   uninstall = 'uninstall',
+  '--version' = '--version',
 }
 
 enum Options {
   '--help' = '--help',
-  '--version' = '--version',
+  '--config' = '--config',
 }
 
 enum Aliases {
@@ -19,16 +20,23 @@ enum Aliases {
   un = 'un',
   '-h' = '-h',
   '-v' = '-v',
+  '-c' = '-c',
 }
 
-export const CliApi = { ...Commands, ...Options, ...Aliases };
+export const CliApiObj = { ...Commands, ...Options, ...Aliases };
 
-export type CliApiString = keyof typeof CliApi;
-export type ParsedArguments = [CliApiString, ...string[]];
+export type CliCommandsOptionsAliasesString = keyof typeof CliApiObj;
+export type RawCliArgs = (CliCommandsOptionsAliasesString | string)[];
 
-export const cliApiStrings = Object.keys(CliApi) as CliApiString[];
+export interface ParsedArguments {
+  command: CliCommandsOptionsAliasesString;
+  tools: string[];
+  pathToScaffyConfig?: string;
+}
+
+export const CliCommandsOptionsAliasesStringArr = Object.keys(
+  CliApiObj
+) as CliCommandsOptionsAliasesString[];
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
-
-export const projectRootDir = path.resolve('./');

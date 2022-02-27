@@ -5,14 +5,13 @@ import 'zx/globals';
 
 import { doesObjectHaveProperty, error, info } from '../utils';
 import { parseScaffyConfig, retrieveProjectDependencies } from '../helpers';
-import { projectRootDir } from '../constants';
 
 import type { ConfigSchema, ProjectDependencies } from '../compiler/types';
 
-export default async function install(tools: string[]) {
-  const scaffyConf = await parseScaffyConfig(`${projectRootDir}/scaffy.config`);
+export default async function install(tools: string[], rootDir: string) {
+  const scaffyConf = await parseScaffyConfig(`${rootDir}/scaffy.config`);
   const projectDependencies = await retrieveProjectDependencies(
-    `${projectRootDir}/package.json`
+    `${rootDir}/package.json`
   );
 
   // await performScaffyDepChecks()

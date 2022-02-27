@@ -9,17 +9,16 @@ import { doesPathExist, isSubset, removeEntityAt } from '../src/utils';
 import { parseScaffyConfig, retrieveProjectDependencies } from '../src/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-install/');
+const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
 
 test.skip('Should make sure installation command installs deps and downloads files as required', async () => {
   // Arrange
-  const sampleScaffyConfig = await parseScaffyConfig(
-    `${pathToSampleProjectDir}/sample.scaffy.json`
-  );
+  const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
   const toolToSetup = sampleScaffyConfig.eslint as RequiredConfigSchema;
   const tools = ['react', 'tailwind', ...Object.keys(sampleScaffyConfig)];
 
   // Act
-  await install(tools, pathToSampleProjectDir);
+  await install(tools, pathToScaffyConfig);
   await removeEntityAt('./node_modules', true);
 
   const sampleProjectDirPackageJSONObj = await retrieveProjectDependencies(

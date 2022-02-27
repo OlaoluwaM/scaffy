@@ -9,18 +9,17 @@ import { doesPathExist, isSubset } from '../src/utils';
 import { parseScaffyConfig, retrieveProjectDependencies } from '../src/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
+const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
 
 test.skip('Should make sure uninstallation command removes deps and downloads files as required', async () => {
   // Arrange
-  const sampleScaffyConfig = await parseScaffyConfig(
-    `${pathToSampleProjectDir}/sample.scaffy.json`
-  );
+  const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
 
   const toolToSetup = sampleScaffyConfig.eslint as RequiredConfigSchema;
   const tools = ['react', 'tailwind', ...Object.keys(sampleScaffyConfig)];
 
   // Act
-  await uninstall(tools, pathToSampleProjectDir);
+  await uninstall(tools, pathToScaffyConfig);
 
   const sampleProjectDirPackageJSONObj = await retrieveProjectDependencies(
     pathToSampleProjectDir

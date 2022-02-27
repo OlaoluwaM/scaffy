@@ -8,6 +8,6 @@ import cli from './cli';
 import { parseArguments } from './helpers';
 
 (async () => {
-  const [command, ...toolNames] = parseArguments();
-  cli(command, toolNames);
+  // const [command, ...toolNames] = parseArguments();
+  // cli(command, toolNames);
 })();

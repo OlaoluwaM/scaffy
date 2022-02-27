@@ -52,5 +52,8 @@ module.exports = {
     '@typescript-eslint/no-shadow': 'error',
 
     'no-underscore-dangle': 0,
+    'no-useless-escape': 0,
+
+    'import/order': 0,
   },
 };

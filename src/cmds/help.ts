@@ -1,3 +1,5 @@
+import { info } from '../utils';
+
 const helpString = `
 DESCRIPTION
   scaffy is a CLI application that helps you bootstrap your favorite tools with your custom configurations
@@ -19,4 +21,6 @@ Options:
   -v --version                Output version information.
 `;
 
-export default helpString;
+export default function outputHelp() {
+  info(helpString);
+}

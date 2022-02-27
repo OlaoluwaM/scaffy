@@ -22,3 +22,8 @@ export type Primitive = string | number;
 export type AnyObject = Record<Primitive, unknown>;
 
 export type ToolName = string & { _type: 'tool' };
+
+export enum ExitCodes {
+  GENERAL = 1,
+  COMMAND_NOT_FOUND = 127,
+}

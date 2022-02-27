@@ -4,7 +4,8 @@
 import 'zx/globals';
 
 import fsPromise from 'fs/promises';
-import helpString from './cmds/help';
+
+import { RawCliArgs } from './constants';
 import { AnyObject, Primitive } from './compiler/types';
 
 export function info(msg: string) {
@@ -15,7 +16,7 @@ export function error(msg: string) {
   console.error(chalk.red.bold(msg));
 }
 
-export function pipe(...fns: readonly ((arg: any) => unknown)[]) {
+export function pipe(...fns: readonly ((...args: any[]) => any)[]) {
   return (initialValue: unknown) =>
     fns.reduce((accumulatedValue, fnToRun) => fnToRun(accumulatedValue), initialValue);
 }
@@ -27,32 +28,12 @@ export function includedInCollection<T extends U, U>(
   return collection.includes(itemToCheck as T);
 }
 
-export function getCliArguments(): string[] {
+export function getCliArguments(): RawCliArgs {
   return process.argv.slice(2);
-}
-
-export function genericErrorHandler(msg: string, displayHelp: boolean = true): never {
-  error(msg);
-  if (displayHelp) outputHelp();
-  return process.exit(1);
-}
-
-export function outputHelp() {
-  info(helpString);
 }
 
 export function doesObjectHaveProperty(obj: AnyObject, property: Primitive): boolean {
   return Object.prototype.hasOwnProperty.call(obj, property);
-}
-
-function capitalize(str: string): Capitalize<string> {
-  const lowerCaseString = str.toLocaleLowerCase();
-  const letterToCapitalize = lowerCaseString[0];
-
-  return lowerCaseString.replace(
-    letterToCapitalize,
-    letterToCapitalize.toLocaleUpperCase()
-  );
 }
 
 type MultiLineString = string & { _type: 'multiLine' };
@@ -90,4 +71,19 @@ export async function doesPathExist(entityPath: string): Promise<boolean> {
   } catch (err) {
     return false;
   }
+}
+
+export function filterOutPaths(arr: string[]): string[] {
+  const pathRegex = /\.\.?\/[^\n"?:*<>|]+\.[A-z0-9]+/;
+  return arr.filter(elem => !pathRegex.test(elem));
+}
+
+function capitalize(str: string): Capitalize<string> {
+  const lowerCaseString = str.toLocaleLowerCase();
+  const letterToCapitalize = lowerCaseString[0];
+
+  return lowerCaseString.replace(
+    letterToCapitalize,
+    letterToCapitalize.toLocaleUpperCase()
+  );
 }
