@@ -3,21 +3,15 @@
 
 import 'zx/globals';
 
-import outputHelp from './cmds/help';
+import outputHelp from '../cmds/help';
 
-import { error, filterOutPaths, includedInCollection, pipe } from './utils';
+import { error } from '../utils';
 import {
-  ConfigSchema,
-  ProjectDependencies,
-  Dependencies,
   ExitCodes,
-} from './compiler/types';
-import {
-  CliApiObj,
-  RawCliArgs,
-  ParsedArguments,
-  CliCommandsOptionsAliasesString,
-} from './constants';
+  ConfigSchema,
+  Dependencies,
+  ProjectDependencies,
+} from '../compiler/types';
 
 interface SamplePackageJson {
   version: string;

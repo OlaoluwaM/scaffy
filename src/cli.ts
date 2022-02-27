@@ -1,8 +1,13 @@
+#!/usr/bin/env zx
+
 import install from './cmds/install';
+import outputHelp from './cmds/help';
 import outPutCliVersion from './cmds/version';
 
 import { info } from './utils';
-import { CliApiObj, ParsedArguments } from './constants';
+import { ExitCodes } from './compiler/types';
+import { genericErrorHandler } from './lib/helpers';
+import { ParsedArguments, CliApiObj } from './lib/parseArgs';
 
 export default async function cli(
   parsedArguments: ParsedArguments,
@@ -32,6 +37,10 @@ export default async function cli(
       break;
 
     default:
-      genericErrorHandler(`Whoops, ${command} is not a supported command`);
+      genericErrorHandler(
+        `Whoops, ${command} is not a supported command`,
+        true,
+        ExitCodes.COMMAND_NOT_FOUND
+      );
   }
 }

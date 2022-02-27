@@ -5,7 +5,6 @@ import 'zx/globals';
 
 import fsPromise from 'fs/promises';
 
-import { RawCliArgs } from './constants';
 import { AnyObject, Primitive } from './compiler/types';
 
 export function info(msg: string) {
@@ -26,10 +25,6 @@ export function includedInCollection<T extends U, U>(
   itemToCheck: U
 ): itemToCheck is T {
   return collection.includes(itemToCheck as T);
-}
-
-export function getCliArguments(): RawCliArgs {
-  return process.argv.slice(2);
 }
 
 export function doesObjectHaveProperty(obj: AnyObject, property: Primitive): boolean {

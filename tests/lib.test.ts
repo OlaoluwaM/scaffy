@@ -1,9 +1,7 @@
-import parseArguments from '../src/lib/parseArgs';
-
 import { ExitCodes } from '../src/compiler/types';
-import { CliApiObj, ParsedArguments } from '../src/constants';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest, describe, test, expect } from '@jest/globals';
+import parseArguments, { CliApiObj, ParsedArguments } from '../src/lib/parseArgs';
 
 describe('Tests for CLI arguments parsing', () => {
   const noThrowCases = [

@@ -6,7 +6,7 @@ import install from '../src/cmds/install';
 
 import { RequiredConfigSchema } from './helpers';
 import { doesPathExist, isSubset, removeEntityAt } from '../src/utils';
-import { parseScaffyConfig, retrieveProjectDependencies } from '../src/helpers';
+import { parseScaffyConfig, retrieveProjectDependencies } from '../src/lib/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-install/');
 const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;

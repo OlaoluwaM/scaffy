@@ -4,7 +4,7 @@
 import 'zx/globals';
 
 import { doesObjectHaveProperty, error, info } from '../utils';
-import { parseScaffyConfig, retrieveProjectDependencies } from '../helpers';
+import { parseScaffyConfig, retrieveProjectDependencies } from '../lib/helpers';
 
 import type { ConfigSchema, ProjectDependencies } from '../compiler/types';
 

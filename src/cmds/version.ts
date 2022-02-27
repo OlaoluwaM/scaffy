@@ -5,7 +5,7 @@ import 'zx/globals';
 
 import { info } from '../utils';
 import { __dirname } from '../constants';
-import { retrieveProjectDependencies } from '../helpers';
+import { retrieveProjectDependencies } from '../lib/helpers';
 
 export default async function outPutCliVersion() {
   const __internalPackageJSon = await retrieveProjectDependencies(

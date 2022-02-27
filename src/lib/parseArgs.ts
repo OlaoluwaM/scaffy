@@ -1,12 +1,40 @@
 import { ExitCodes } from '../compiler/types';
-import { genericErrorHandler } from '../helpers';
+import { genericErrorHandler } from './helpers';
 import { includedInCollection, pipe, filterOutPaths } from '../utils';
-import {
-  CliApiObj,
-  RawCliArgs,
-  ParsedArguments,
-  CliCommandsOptionsAliasesString,
-} from '../constants';
+
+enum Commands {
+  install = 'install',
+  uninstall = 'uninstall',
+  '--version' = '--version',
+}
+
+enum Options {
+  '--help' = '--help',
+  '--config' = '--config',
+}
+
+enum Aliases {
+  i = 'i',
+  un = 'un',
+  '-h' = '-h',
+  '-v' = '-v',
+  '-c' = '-c',
+}
+
+export const CliApiObj = { ...Commands, ...Options, ...Aliases };
+
+export type CliCommandsOptionsAliasesString = keyof typeof CliApiObj;
+export type RawCliArgs = (CliCommandsOptionsAliasesString | string)[];
+
+export interface ParsedArguments {
+  command: CliCommandsOptionsAliasesString;
+  tools: string[];
+  pathToScaffyConfig?: string;
+}
+
+export const CliCommandsOptionsAliasesStringArr = Object.keys(
+  CliApiObj
+) as CliCommandsOptionsAliasesString[];
 
 export default function parseArguments(
   cliArgs: string[],
@@ -67,4 +95,8 @@ function extractPathToConfFromCliArgs(
 
   if (indexOfPathOption === -1) return './scaffy.json';
   return cliArgs[indexOfPathOption + 1];
+}
+
+function getCliArguments(): RawCliArgs {
+  return process.argv.slice(2);
 }
