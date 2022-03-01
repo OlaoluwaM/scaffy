@@ -55,5 +55,8 @@ module.exports = {
     'no-useless-escape': 0,
 
     'import/order': 0,
+    'import/no-named-default': 0,
+
+    'no-unused-expressions': ['error', { allowShortCircuit: true }],
   },
 };

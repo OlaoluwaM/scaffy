@@ -1,9 +1,10 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
+  testTimeout: 50000,
   testEnvironment: 'node',
   verbose: true,
-  // setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
   transform: {},
   extensionsToTreatAsEsm: ['.ts'],
   globals: {

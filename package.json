@@ -12,9 +12,10 @@
     "prebuild": "rm -rf dist",
     "build": "tsc -p ./tsconfig.prod.json",
     "postbuild": "node ../compiled-ts-import-patch/src/index.mjs ./dist",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --",
-    "test:silent": "NODE_OPTIONS=--experimental-vm-modules jest --silent",
-    "test:single": "NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern --"
+    "test:setup": "./setup-test-data-dir.sh",
+    "test": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --",
+    "test:silent": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --silent",
+    "test:single": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern --"
   },
   "keywords": [],
   "author": "Olaoluwa Mustapha <jomeemustapha@gmail.com>",
