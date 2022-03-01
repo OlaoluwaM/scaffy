@@ -27,7 +27,7 @@ export default async function install(tools: string[], rootDir: string) {
 //   tool: string,
 //   toolReqs: ConfigSchema[string] | undefined,
 //   projectDeps: ProjectDependencies
-// ): Promise<void> | never {
+// ): Promise<void>  {
 //   if (!toolReqs) return exitOnUnavailableTool(tool);
 //   const { devDeps, deps, remoteConfigurations, localConfigurations } = toolReqs;
 

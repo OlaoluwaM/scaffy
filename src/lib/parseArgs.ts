@@ -39,7 +39,7 @@ export const CliCommandsOptionsAliasesStringArr = Object.keys(
 export default function parseArguments(
   cliArgs: string[],
   cliOptionObj: typeof CliApiObj
-): ParsedArguments | never {
+): ParsedArguments {
   const cliOptionsArr = Object.keys(cliOptionObj) as CliCommandsOptionsAliasesString[];
 
   const argsObj: ParsedArguments = {
@@ -54,7 +54,7 @@ export default function parseArguments(
 function extractCommandFromCliArgs(
   cliArgs: RawCliArgs,
   cliOptions: CliCommandsOptionsAliasesString[]
-): CliCommandsOptionsAliasesString | never {
+): CliCommandsOptionsAliasesString {
   if (includedInCollection(cliOptions, cliArgs[0])) {
     return cliArgs[0];
   }

@@ -1,17 +1,20 @@
 #!/usr/bin/env zx
-/* global fs */
+/* global fs, $, path */
 
 import 'zx/globals';
 
+import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
-import { error } from '../utils';
+import { error, info, success } from '../utils';
 import {
   ExitCodes,
   ConfigSchema,
   Dependencies,
   ProjectDependencies,
+  AnyFunction,
 } from '../compiler/types';
+import { ProcessOutput } from 'zx';
 
 interface SamplePackageJson {
   version: string;
@@ -20,7 +23,7 @@ interface SamplePackageJson {
 }
 export async function retrieveProjectDependencies(
   path: string
-): Promise<ProjectDependencies> | never {
+): Promise<ProjectDependencies> {
   try {
     const packageJsonObject = (await fs.readJSON(path)) as SamplePackageJson;
 
@@ -40,7 +43,7 @@ function handleDepsRetrievalError(): never {
   return process.exit(1);
 }
 
-export async function parseScaffyConfig(path: string): Promise<ConfigSchema> | never {
+export async function parseScaffyConfig(path: string): Promise<ConfigSchema> {
   try {
     const configObject = (await fs.readJSON(path)) as ConfigSchema;
     return configObject;
@@ -61,6 +64,50 @@ export function determineAvailableToolsFromScaffyConfig(
 ): string[] {
   const toolsInConfig = Object.keys(scaffyConfig);
   return requestedToolNames.filter(toolName => toolsInConfig.includes(toolName));
+}
+
+export async function isCommandAvailable(commandName: string): Promise<boolean> {
+  try {
+    await $`command -v ${commandName}`;
+    return true;
+  } catch {
+    error(`Hmm, looks like ${commandName} is not installed`);
+    return false;
+  }
+}
+
+interface EntityRemovalOptions {
+  force?: boolean;
+  recursive?: boolean;
+}
+export async function removeEntityAt(
+  entityPath: string,
+  entityName = '',
+  options: EntityRemovalOptions = { force: true }
+) {
+  try {
+    info(`Removing ${entityName}....`);
+    console.log(entityPath);
+    await fs.rm(entityPath, options);
+
+    success(`${entityName} removed!`);
+  } catch (err) {
+    error(`Error occurred while trying to remove ${entityName}`);
+    error((err as ProcessOutput).stderr);
+  }
+}
+
+function isFile(entityPath: string): boolean {
+  return !!path.extname(entityPath);
+}
+
+export async function doesPathExist(entityPath: string): Promise<boolean> {
+  try {
+    await fsPromise.stat(entityPath);
+    return true;
+  } catch (err) {
+    return false;
+  }
 }
 
 export function genericErrorHandler(

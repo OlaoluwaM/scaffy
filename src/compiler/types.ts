@@ -27,3 +27,5 @@ export enum ExitCodes {
   GENERAL = 1,
   COMMAND_NOT_FOUND = 127,
 }
+
+export type AnyFunction = (...args: any[]) => any;
