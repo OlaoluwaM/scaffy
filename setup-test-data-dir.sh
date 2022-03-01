@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-echo "Seting up test data directory...."
 DATA_DIR="./tests/test-data"
+test -d "$DATA_DIR" && exit 0
 
-echo "Removing old..."
-rm -rf $DATA_DIR
+echo "Seting up test data directory...."
+
 
 echo "Recreating test data directory"
 mkdir $DATA_DIR

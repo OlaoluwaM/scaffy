@@ -2,7 +2,7 @@
 /* global chalk */
 
 import 'zx/globals';
-import { AnyFunction, AnyObject, Primitive } from './compiler/types';
+import { AnyObject, Primitive } from './compiler/types';
 
 export function info(msg: string) {
   console.info(chalk.whiteBright.bold(msg));

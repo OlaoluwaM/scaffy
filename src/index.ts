@@ -1,11 +1,13 @@
 #!/usr/bin/env zx
-/* global */
+/* global $ */
 
 import 'zx/globals';
 
 import cli from './cli';
 
 import { parseArguments } from './lib/helpers';
+
+$.verbose = false;
 
 (async () => {
   // const [command, ...toolNames] = parseArguments();
