@@ -1,7 +1,21 @@
+/* global fs */
+
+import download from '../src/lib/downloadFile';
+
 import { ExitCodes } from '../src/compiler/types';
+import { testDataDir } from './test-setup';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { jest, describe, test, expect } from '@jest/globals';
-import parseArguments, { CliApiObj, ParsedArguments } from '../src/lib/parseArgs';
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import {
+  CliApiObj,
+  ParsedArguments,
+  default as parseArguments,
+} from '../src/lib/parseArgs';
+import {
+  areFilesDownloaded,
+  isSuccessfulPromise,
+  didAllPromisesSucceed,
+} from './helpers';
 
 describe('Tests for CLI arguments parsing', () => {
   const noThrowCases = [
@@ -60,7 +74,7 @@ describe('Tests for CLI arguments parsing', () => {
     const argsToParse = ['oof', '-c', './some/scaffy.json', '-c', '../some/scaffy.json'];
     const mockExit = jest
       .spyOn(process, 'exit')
-      .mockImplementationOnce((code?: number) => '1' as never);
+      .mockImplementationOnce(() => '1' as never);
 
     // Act
     parseArguments(argsToParse, CliApiObj);
@@ -68,4 +82,72 @@ describe('Tests for CLI arguments parsing', () => {
     // Assert
     expect(mockExit).toHaveBeenCalledWith(ExitCodes.COMMAND_NOT_FOUND);
   });
+});
+
+describe('Tests for downloading remote configuration', () => {
+  // Arrange All
+  const sampleUrls = [
+    'https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/others/nativefy.sh',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/.eslintignore',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/jest.config.js',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/craco.config.js',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/postcss.config.js',
+  ];
+
+  const SUB_TEST_DIR_FOR_TEST = 'for-remote-downloads' as const;
+  const destinationDir = `${testDataDir}/${SUB_TEST_DIR_FOR_TEST}`;
+
+  beforeEach(async () => {
+    await fs.emptyDir(destinationDir);
+  });
+
+  test.each([['curl'], ['wget'], ['no specified command']])(
+    'Should make sure that all remote configs can be downloaded with %s',
+    async curlOrWget => {
+      // Act
+      await download(sampleUrls, destinationDir, curlOrWget);
+
+      const allRemoteConfigsDownloaded = didAllPromisesSucceed(
+        await areFilesDownloaded(sampleUrls, destinationDir)
+      );
+
+      // Assert
+      expect(allRemoteConfigsDownloaded).toBe(true);
+    }
+  );
+
+  test.each([['curl'], ['wget'], ['no specified command']])(
+    'Should make sure that remote configs can be downloaded even if some cannot be downloaded using %s',
+    async curlOrWget => {
+      // Arrange
+      const sampleUrlsForThisTest = [...sampleUrls];
+      sampleUrlsForThisTest[0] = 'https://hgkgyguiu/gyfkffyyggugi.png';
+      sampleUrlsForThisTest[1] = 'https://hgkgyguilbgifuttuku/gyfkffyyiohohhuggugi.png';
+
+      // Act
+      await download(sampleUrls, destinationDir, curlOrWget);
+
+      const remoteConfigsDownloadStatuses = await areFilesDownloaded(
+        sampleUrlsForThisTest,
+        destinationDir
+      );
+
+      const numberOfRemoteConfigsDownload =
+        remoteConfigsDownloadStatuses.filter(isSuccessfulPromise).length;
+
+      // Assert
+      expect(numberOfRemoteConfigsDownload).toBe(sampleUrls.length - 2);
+
+      // Assert
+      // let spiedConsole;
+      // if (curlOrWget === 'curl') {
+      //   spiedConsole = jest.spyOn(console, 'error');
+      // }
+
+      // spiedConsole &&
+      //   expect(spiedConsole).toHaveBeenCalledWith(
+      //     expect.stringMatching(/.*(retrying|wget)/i)
+      //   );
+    }
+  );
 });

@@ -1,12 +1,15 @@
-/* eslint-disable import/no-relative-packages */
 /* global test, expect */
 
 import path from 'path';
 // import uninstall from '../src/cmds/uninstall';
 
 import { RequiredConfigSchema } from './helpers';
-import { doesPathExist, isSubset } from '../src/utils';
-import { parseScaffyConfig, retrieveProjectDependencies } from '../src/lib/helpers';
+import { isSubset } from '../src/utils';
+import {
+  doesPathExist,
+  parseScaffyConfig,
+  retrieveProjectDependencies,
+} from '../src/lib/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
 const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
@@ -16,7 +19,7 @@ test.skip('Should make sure uninstallation command removes deps and downloads fi
   const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
 
   const toolToSetup = sampleScaffyConfig.eslint as RequiredConfigSchema;
-  const tools = ['react', 'tailwind', ...Object.keys(sampleScaffyConfig)];
+  // const tools = ['react', 'tailwind', ...Object.keys(sampleScaffyConfig)];
 
   // Act
   // await uninstall(tools, pathToScaffyConfig);

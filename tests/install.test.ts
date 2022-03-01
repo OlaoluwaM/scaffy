@@ -4,9 +4,14 @@
 import path from 'path';
 import install from '../src/cmds/install';
 
+import { isSubset } from '../src/utils';
 import { RequiredConfigSchema } from './helpers';
-import { doesPathExist, isSubset, removeEntityAt } from '../src/utils';
-import { parseScaffyConfig, retrieveProjectDependencies } from '../src/lib/helpers';
+import {
+  doesPathExist,
+  removeEntityAt,
+  parseScaffyConfig,
+  retrieveProjectDependencies,
+} from '../src/lib/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-install/');
 const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
@@ -19,7 +24,7 @@ test.skip('Should make sure installation command installs deps and downloads fil
 
   // Act
   await install(tools, pathToScaffyConfig);
-  await removeEntityAt('./node_modules', true);
+  await removeEntityAt('./node_modules', 'node modules');
 
   const sampleProjectDirPackageJSONObj = await retrieveProjectDependencies(
     pathToSampleProjectDir
