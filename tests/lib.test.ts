@@ -1,14 +1,16 @@
 /* global fs */
 
+import path from 'path';
 import download from '../src/lib/downloadFile';
 
+import prompt from 'prompts';
 import { ExitCodes } from '../src/compiler/types';
 import { testDataDir } from './test-setup';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 import {
-  CliApiObj,
   ParsedArguments,
+  sortOutRawCliArgs,
   default as parseArguments,
 } from '../src/lib/parseArgs';
 import {
@@ -34,7 +36,10 @@ describe('Tests for CLI arguments parsing', () => {
       {
         command: 'un',
         tools: ['react', '@babel/core', 'typescript'],
-        pathToScaffyConfig: './scaffy.json',
+        pathToScaffyConfig: path.relative(
+          './',
+          `${testDataDir}/local-configs/test.scaffy.json`
+        ),
       },
     ],
     [
@@ -59,25 +64,36 @@ describe('Tests for CLI arguments parsing', () => {
 
   test.each(noThrowCases)(
     'Should ensure cli args are parsed correctly %s',
-    (str, sampleCliArgs, desiredOutputObj) => {
+    async (str, sampleCliArgs, desiredOutputObj) => {
       // Arrange
+      if (str.includes('defaults')) {
+        prompt.inject([(desiredOutputObj as ParsedArguments).pathToScaffyConfig]);
+      }
+
       // Act
-      const output = parseArguments(sampleCliArgs, CliApiObj);
+      const output = await parseArguments(sortOutRawCliArgs(sampleCliArgs));
 
       // Assert
       expect(output).toEqual(desiredOutputObj);
     }
   );
 
-  test('Should exit on invalid command', () => {
+  test('Should exit on invalid command', async () => {
     // Arrange
-    const argsToParse = ['oof', '-c', './some/scaffy.json', '-c', '../some/scaffy.json'];
+    const argsToParse = sortOutRawCliArgs([
+      'oof',
+      '-c',
+      './some/scaffy.json',
+      '-c',
+      '../some/scaffy.json',
+    ]);
+
     const mockExit = jest
       .spyOn(process, 'exit')
       .mockImplementationOnce(() => '1' as never);
 
     // Act
-    parseArguments(argsToParse, CliApiObj);
+    await parseArguments(argsToParse);
 
     // Assert
     expect(mockExit).toHaveBeenCalledWith(ExitCodes.COMMAND_NOT_FOUND);

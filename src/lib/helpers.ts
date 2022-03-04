@@ -1,20 +1,19 @@
 #!/usr/bin/env zx
-/* global fs, $, path */
+/* global fs, $, path, globby */
 
 import 'zx/globals';
 
 import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
-import { error, info, success } from '../utils';
+import { ProcessOutput } from 'zx';
+import { error, info, success, extractSubsetFromCollection } from '../utils';
 import {
   ExitCodes,
   ConfigSchema,
   Dependencies,
   ProjectDependencies,
-  AnyFunction,
 } from '../compiler/types';
-import { ProcessOutput } from 'zx';
 
 interface SamplePackageJson {
   version: string;
@@ -63,7 +62,7 @@ export function determineAvailableToolsFromScaffyConfig(
   requestedToolNames: string[]
 ): string[] {
   const toolsInConfig = Object.keys(scaffyConfig);
-  return requestedToolNames.filter(toolName => toolsInConfig.includes(toolName));
+  return extractSubsetFromCollection<string>(requestedToolNames, toolsInConfig);
 }
 
 export async function isCommandAvailable(commandName: string): Promise<boolean> {
@@ -97,10 +96,6 @@ export async function removeEntityAt(
   }
 }
 
-function isFile(entityPath: string): boolean {
-  return !!path.extname(entityPath);
-}
-
 export async function doesPathExist(entityPath: string): Promise<boolean> {
   try {
     await fsPromise.stat(entityPath);
@@ -118,4 +113,14 @@ export function genericErrorHandler(
   error(msg);
   if (displayHelp) outputHelp();
   return process.exit(exitCode);
+}
+
+export async function searchForFile(globPattern: string | string[]): Promise<string[]> {
+  const patternMatches = await globby(globPattern);
+  if (patternMatches.length === 0) throw new Error('Could not find any file matches');
+  return patternMatches;
+}
+
+function isFile(entityPath: string): boolean {
+  return !!path.extname(entityPath);
 }

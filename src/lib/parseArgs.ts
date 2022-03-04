@@ -1,102 +1,150 @@
-import { ExitCodes } from '../compiler/types';
-import { genericErrorHandler } from './helpers';
-import { includedInCollection, pipe, filterOutPaths } from '../utils';
+#!/usr/bin/env zx
+/* globals */
+import 'zx/globals';
+
+import path from 'path';
+import prompts from 'prompts';
+
+import { SCAFFY_CONFIG_GLOB } from '../constants';
+import { EnumKeys, ExitCodes } from '../compiler/types';
+import { genericErrorHandler, searchForFile } from './helpers';
+import {
+  pipe,
+  filterOutPaths,
+  includedInCollection,
+  extractSubsetFromCollection,
+} from '../utils';
 
 enum Commands {
   install = 'install',
   uninstall = 'uninstall',
   '--version' = '--version',
+  '--help' = '--help',
 }
 
 enum Options {
-  '--help' = '--help',
   '--config' = '--config',
 }
 
-enum Aliases {
+enum CommandAliases {
   i = 'i',
   un = 'un',
   '-h' = '-h',
   '-v' = '-v',
+}
+
+enum OptionAliases {
   '-c' = '-c',
 }
 
-export const CliApiObj = { ...Commands, ...Options, ...Aliases };
+export const cliApiObj = { ...Commands, ...Options, ...OptionAliases, ...CommandAliases };
 
-export type CliCommandsOptionsAliasesString = keyof typeof CliApiObj;
-export type RawCliArgs = (CliCommandsOptionsAliasesString | string)[];
+export type CliApiString = keyof typeof cliApiObj;
+
+type CommandsApiString = Extract<
+  CliApiString,
+  EnumKeys<typeof Commands> | EnumKeys<typeof CommandAliases>
+>;
+
+type PossibleCommand = string;
+type RestOfCliArgs = string[];
+
+export type RawCliArgs = [PossibleCommand, RestOfCliArgs];
 
 export interface ParsedArguments {
-  command: CliCommandsOptionsAliasesString;
+  command: CommandsApiString;
   tools: string[];
-  pathToScaffyConfig?: string;
+  pathToScaffyConfig: string;
 }
 
-export const CliCommandsOptionsAliasesStringArr = Object.keys(
-  CliApiObj
-) as CliCommandsOptionsAliasesString[];
+export const cliApiStringArr = Object.keys(cliApiObj) as CliApiString[];
+const cliCommandsApiArr = Object.keys({
+  ...Commands,
+  ...CommandAliases,
+}) as CommandsApiString[];
 
-export default function parseArguments(
-  cliArgs: string[],
-  cliOptionObj: typeof CliApiObj
-): ParsedArguments {
-  const cliOptionsArr = Object.keys(cliOptionObj) as CliCommandsOptionsAliasesString[];
+export default async function parseArguments(
+  cliArgs: RawCliArgs
+): Promise<ParsedArguments> {
+  const [possibleCommand, restOfCliArgs] = cliArgs;
 
-  const argsObj: ParsedArguments = {
-    command: extractCommandFromCliArgs(cliArgs, cliOptionsArr),
-    tools: extractToolsFromCliArgs(cliArgs, cliOptionsArr),
-    pathToScaffyConfig: extractPathToConfFromCliArgs(cliArgs, cliOptionObj),
+  const parsedArgsObj: ParsedArguments = {
+    command: extractCommandFromCliArgs(possibleCommand, cliCommandsApiArr),
+    tools: extractToolsFromCliArgs(restOfCliArgs),
+    pathToScaffyConfig: await extractPathToConfFromCliArgs(restOfCliArgs),
   };
 
-  return argsObj;
+  return parsedArgsObj;
 }
 
 function extractCommandFromCliArgs(
-  cliArgs: RawCliArgs,
-  cliOptions: CliCommandsOptionsAliasesString[]
-): CliCommandsOptionsAliasesString {
-  if (includedInCollection(cliOptions, cliArgs[0])) {
-    return cliArgs[0];
+  possibleCommand: PossibleCommand,
+  commandsApiArr: CommandsApiString[]
+): CommandsApiString {
+  if (includedInCollection(commandsApiArr, possibleCommand)) {
+    return possibleCommand;
   }
 
   return genericErrorHandler(
-    `${cliArgs[0]} is not a supported command`,
+    `${possibleCommand} is not a supported command`,
     true,
     ExitCodes.COMMAND_NOT_FOUND
   );
 }
 
-function extractToolsFromCliArgs(
-  cliArgs: RawCliArgs,
-  cliOptionsArr: CliCommandsOptionsAliasesString[]
-): string[] {
-  const rawTools = cliArgs.slice(1);
+function extractToolsFromCliArgs(restOfCliArgs: RestOfCliArgs): string[] {
   const parsedTools = pipe(
-    filterOutCliOptions(cliOptionsArr),
+    extractSubsetFromCollection.bind(null, restOfCliArgs, cliApiStringArr, true),
     filterOutPaths
-  )(rawTools) as string[];
+  )() as string[];
+
   return parsedTools;
 }
 
-function filterOutCliOptions(
-  cliOptionsArr: CliCommandsOptionsAliasesString[]
-): (arr: RawCliArgs) => string[] {
-  return (arr: RawCliArgs) =>
-    arr.filter(elem => !cliOptionsArr.includes(elem as CliCommandsOptionsAliasesString));
-}
-
-function extractPathToConfFromCliArgs(
-  cliArgs: RawCliArgs,
-  cliApi: typeof CliApiObj
-): string {
-  const indexOfPathOption = cliArgs.findIndex(arg =>
-    includedInCollection([cliApi['--config'], cliApi['-c']], arg)
+async function extractPathToConfFromCliArgs(cliArgs: string[]): Promise<string> {
+  const indexOfPathOption = cliArgs.findIndex(
+    arg => arg === cliApiObj['--config'] || arg === cliApiObj['-c']
   );
 
-  if (indexOfPathOption === -1) return './scaffy.json';
-  return cliArgs[indexOfPathOption + 1];
+  // eslint-disable-next-line no-return-await
+  if (indexOfPathOption === -1) return await getDesiredScaffyConfigMatch();
+
+  const indexOfActualPath = indexOfPathOption + 1;
+  return cliArgs[indexOfActualPath];
 }
 
-function getCliArguments(): RawCliArgs {
+// For testing purposes only
+export async function getDesiredScaffyConfigMatch(
+  globPattern = SCAFFY_CONFIG_GLOB
+): Promise<string> {
+  const patternMatches = await searchForFile(globPattern);
+
+  const { desiredConfig } = await prompts({
+    type: 'select',
+    name: 'desiredConfig',
+    message: 'Multiple configuration files found. Please select one: ',
+    choices: createChoicesForMultipleDetectedConfigs(patternMatches),
+  });
+
+  return desiredConfig;
+}
+
+function createChoicesForMultipleDetectedConfigs(
+  configs: string[]
+): { title: string; value: string }[] {
+  return configs.map(configPath => ({
+    title: `${path.basename(configPath)} in ${path.dirname(configPath)}`,
+    value: configPath,
+  }));
+}
+
+export function extractCliArgs(): string[] {
   return process.argv.slice(2);
+}
+
+export function sortOutRawCliArgs(rawArgs: string[]): RawCliArgs {
+  const possibleCommand = rawArgs[0];
+  const restOfCliArgs = rawArgs.slice(1);
+
+  return [possibleCommand, restOfCliArgs];
 }

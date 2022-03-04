@@ -2,7 +2,8 @@
 /* global chalk */
 
 import 'zx/globals';
-import { AnyObject, Primitive } from './compiler/types';
+import { AnyFunction, AnyObject, Primitive } from './compiler/types';
+import { ErrorHook, ERROR_HOOK } from './constants';
 
 export function info(msg: string) {
   console.info(chalk.whiteBright.bold(msg));
@@ -17,7 +18,7 @@ export function error(msg: string) {
 }
 
 export function pipe(...fns: readonly ((...args: any[]) => any)[]) {
-  return (initialValue: unknown) =>
+  return (initialValue?: unknown) =>
     fns.reduce((accumulatedValue, fnToRun) => fnToRun(accumulatedValue), initialValue);
 }
 
@@ -46,14 +47,56 @@ export function filterOutPaths(arr: string[]): string[] {
   return arr.filter(elem => !pathRegex.test(elem));
 }
 
-export function withError<P extends unknown[], R extends unknown>(
+export function addException<P extends unknown[], R extends unknown>(
   callback: (...args: P) => R
-): (...args: P) => Promise<R> {
-  return async (...args) => {
-    const value = await callback(...args);
-    if (!value) throw new Error('Falsy');
-    return value;
+) {
+  return async (...args: P) => {
+    const value = (await callback(...args)) as Awaited<R>;
+    if (value === ERROR_HOOK || !value) throw new Error('An Error occurred');
+    return value as Exclude<Awaited<R>, ErrorHook>;
   };
+}
+
+type TrueOnNullish<T> = T extends undefined | null ? true : T;
+export function addExceptionHook<P extends unknown[], R extends unknown>(
+  successCallback: (...args: P[]) => R,
+  errorCallback = defaultErrorCallback
+): () => Promise<TrueOnNullish<R> | ErrorHook> {
+  return async () => {
+    try {
+      const returnValue = await successCallback();
+      return (returnValue || true) as TrueOnNullish<R>;
+    } catch (err) {
+      errorCallback(err as Error | string);
+      return ERROR_HOOK;
+    }
+  };
+}
+function defaultErrorCallback(err: Error | string) {
+  if (typeof err === 'object') {
+    error(err.message);
+  } else error(err);
+}
+
+export function extractSubsetFromCollection<R>(
+  superset: unknown[],
+  subset: unknown[],
+  excludeSubset = false
+) {
+  return superset.filter(elem => {
+    const elemIsInSubset = subset.includes(elem);
+    return excludeSubset ? !elemIsInSubset : elemIsInSubset;
+  }) as R[];
+}
+
+type RawTypes = Lowercase<
+  'Function' | 'Object' | 'Array' | 'Null' | 'Undefined' | 'String' | 'Number' | 'Boolean'
+>;
+export function rawTypeOf(value: unknown): RawTypes {
+  return Object.prototype.toString
+    .call(value)
+    .replace(/\[|\]|object|\s/g, '')
+    .toLocaleLowerCase() as RawTypes;
 }
 
 function capitalize(str: string): Capitalize<string> {

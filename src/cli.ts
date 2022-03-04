@@ -7,18 +7,15 @@ import outPutCliVersion from './cmds/version';
 import { info } from './utils';
 import { ExitCodes } from './compiler/types';
 import { genericErrorHandler } from './lib/helpers';
-import { ParsedArguments, CliApiObj } from './lib/parseArgs';
+import { ParsedArguments, cliApiObj } from './lib/parseArgs';
 
-export default async function cli(
-  parsedArguments: ParsedArguments,
-  cliApi: typeof CliApiObj
-) {
-  const { command, pathToScaffyConfig, tools } = parsedArguments;
+export default async function cli(parsedArguments: ParsedArguments, cliApi = cliApiObj) {
+  const { command, tools, pathToScaffyConfig } = parsedArguments;
 
   switch (command) {
     case cliApi.install:
     case cliApi.i:
-      // await install(tools);
+      // await install(t);
       break;
 
     case cliApi.uninstall:

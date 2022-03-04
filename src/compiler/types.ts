@@ -29,3 +29,6 @@ export enum ExitCodes {
 }
 
 export type AnyFunction = (...args: any[]) => any;
+
+export type EnumKeys<E> = keyof E;
+

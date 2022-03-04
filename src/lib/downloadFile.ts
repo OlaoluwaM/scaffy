@@ -34,10 +34,7 @@ export default async function download(
   }
 }
 
-async function downloadWithAvailableCommand(
-  urls: string[],
-  destinationDir: string
-): Promise<void> {
+async function downloadWithAvailableCommand(urls: string[], destinationDir: string) {
   info(`Downloading remote configurations....\n`);
 
   const curlIsInstalled = await isCommandAvailable('curl');

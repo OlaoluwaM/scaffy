@@ -2,7 +2,7 @@ import path from 'path';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
-import { withError } from '../src/utils';
+import { addException } from '../src/utils';
 import { ConfigSchema } from '../src/compiler/types';
 import { doesPathExist } from '../src/lib/helpers';
 
@@ -28,7 +28,9 @@ export async function areFilesDownloaded(
     urls.map(url => {
       const filename = path.basename(url);
       const intendedPath = `${destinationDir}/${filename}`;
-      const doesPathExistWithErr = withError<string[], Promise<boolean>>(doesPathExist);
+      const doesPathExistWithErr = addException<string[], Promise<boolean>>(
+        doesPathExist
+      );
       return doesPathExistWithErr(intendedPath);
     })
   );

@@ -5,11 +5,18 @@ import 'zx/globals';
 
 import cli from './cli';
 
-import { parseArguments } from './lib/helpers';
+import { pipe } from './utils';
+import {
+  RawCliArgs,
+  extractCliArgs,
+  sortOutRawCliArgs,
+  default as parseArguments,
+} from './lib/parseArgs';
 
 $.verbose = false;
 
 (async () => {
-  // const [command, ...toolNames] = parseArguments();
-  // cli(command, toolNames);
+  const rawCliArguments = pipe(extractCliArgs, sortOutRawCliArgs)() as RawCliArgs;
+  const argumentsObj = await parseArguments(rawCliArguments);
+  cli(argumentsObj);
 })();
