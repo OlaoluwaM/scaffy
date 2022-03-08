@@ -99,6 +99,30 @@ export function rawTypeOf(value: unknown): RawTypes {
     .toLocaleLowerCase() as RawTypes;
 }
 
+// TODO: Test this
+export function pickObjPropsToAnotherObj<O extends AnyObject, P extends keyof O>(
+  initialObject: O,
+  targetProperties: P[]
+) {
+  const desiredPropertyKeys = extractSubsetFromCollection(
+    Object.keys(initialObject),
+    targetProperties
+  ) as P[];
+
+  const objWithDesiredProperties = desiredPropertyKeys.reduce((filteredObj, propName) => {
+    /* eslint no-param-reassign: ["error", { "props": false }] */
+    filteredObj.propName = initialObject.propName;
+    return filteredObj;
+  }, {} as AnyObject);
+
+  return objWithDesiredProperties as Pick<O, P>;
+}
+
+export function isEmptyObject(obj: AnyObject): boolean {
+  const EMPTY_OBJ_STRING = '{}' as const;
+  return JSON.stringify(obj) === EMPTY_OBJ_STRING;
+}
+
 function capitalize(str: string): Capitalize<string> {
   const lowerCaseString = str.toLocaleLowerCase();
   const letterToCapitalize = lowerCaseString[0];

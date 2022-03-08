@@ -121,6 +121,10 @@ export async function searchForFile(globPattern: string | string[]): Promise<str
   return patternMatches;
 }
 
+export function determineRootDirectory(): string {
+  return path.resolve('./');
+}
+
 function isFile(entityPath: string): boolean {
   return !!path.extname(entityPath);
 }

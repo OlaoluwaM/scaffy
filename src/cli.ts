@@ -15,7 +15,7 @@ export default async function cli(parsedArguments: ParsedArguments, cliApi = cli
   switch (command) {
     case cliApi.install:
     case cliApi.i:
-      // await install(t);
+      await install(pathToScaffyConfig, tools);
       break;
 
     case cliApi.uninstall:
