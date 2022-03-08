@@ -8,13 +8,13 @@ import { isSubset } from '../src/utils';
 import {
   doesPathExist,
   parseScaffyConfig,
-  retrieveProjectDependencies,
+  parseProjectDependencies,
 } from '../src/lib/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
 const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
 
-test.skip('Should make sure uninstallation command removes deps and downloads files as required', async () => {
+test.skip('Should make sure un-installation command removes deps and downloads files as required', async () => {
   // Arrange
   const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
 
@@ -24,7 +24,7 @@ test.skip('Should make sure uninstallation command removes deps and downloads fi
   // Act
   // await uninstall(tools, pathToScaffyConfig);
 
-  const sampleProjectDirPackageJSONObj = await retrieveProjectDependencies(
+  const sampleProjectDirPackageJSONObj = await parseProjectDependencies(
     pathToSampleProjectDir
   );
   const samplePackageJsonDeps = Object.keys(sampleProjectDirPackageJSONObj.deps);

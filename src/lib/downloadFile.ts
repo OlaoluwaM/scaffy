@@ -7,7 +7,7 @@ import fsPromise from 'fs/promises';
 
 import { ProcessOutput } from 'zx';
 import { isCommandAvailable, removeEntityAt } from './helpers';
-import { error, info, success, toMultiLineString } from '../utils';
+import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
 const WGET_URL_FILENAME = 'urls.txt';
 
@@ -16,11 +16,11 @@ enum CurlOrWget {
   Wget = 'wget',
 }
 export default async function download(
-  urls: string[],
+  urls: string[] | undefined,
   destinationDir: string,
   utilToUse?: CurlOrWget
 ) {
-  if (urls.length === 0) return;
+  if (!urls || isEmpty.array(urls)) return;
 
   switch (utilToUse) {
     case CurlOrWget.Curl:

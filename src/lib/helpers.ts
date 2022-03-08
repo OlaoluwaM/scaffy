@@ -20,11 +20,11 @@ interface SamplePackageJson {
   dependencies: Dependencies;
   devDependencies: Dependencies;
 }
-export async function retrieveProjectDependencies(
-  path: string
+export async function parseProjectDependencies(
+  pathToPackageJson: string
 ): Promise<ProjectDependencies> {
   try {
-    const packageJsonObject = (await fs.readJSON(path)) as SamplePackageJson;
+    const packageJsonObject = (await fs.readJSON(pathToPackageJson)) as SamplePackageJson;
 
     return {
       version: packageJsonObject.version,
@@ -86,13 +86,12 @@ export async function removeEntityAt(
 ) {
   try {
     info(`Removing ${entityName}....`);
-    console.log(entityPath);
     await fs.rm(entityPath, options);
 
     success(`${entityName} removed!`);
   } catch (err) {
     error(`Error occurred while trying to remove ${entityName}`);
-    error((err as ProcessOutput).stderr);
+    error((err as Error).message);
   }
 }
 

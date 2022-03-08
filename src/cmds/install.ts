@@ -3,32 +3,29 @@
 
 import 'zx/globals';
 
+import path from 'path';
 import {
-  doesObjectHaveProperty,
-  error,
-  extractSubsetFromCollection,
-  info,
-  isEmptyObject,
-  pickObjPropsToAnotherObj,
-} from '../utils';
-import {
-  determineRootDirectory,
   parseScaffyConfig,
-  retrieveProjectDependencies,
+  determineRootDirectory,
+  parseProjectDependencies,
 } from '../lib/helpers';
+import {
+  info,
+  error,
+  isEmpty,
+  pickObjPropsToAnotherObj,
+  extractSubsetFromCollection,
+} from '../utils';
 
 import type { ConfigSchema, ProjectDependencies } from '../compiler/types';
+import download from '../lib/downloadFile';
 
 export default async function install(pathToScaffyConfig: string, tools: string[]) {
+  // const projectDependencies = await getProjectDependencies();
   const scaffyConfObj = await parseScaffyConfig(pathToScaffyConfig);
-  const projectDependencies = await parseProjectDependencies();
   const toolsInScaffyConfig = filterToolsInScaffyConfig(tools, scaffyConfObj);
-  // await Promise.allSettled(installationPromises);
-}
 
-async function parseProjectDependencies(): Promise<ProjectDependencies> {
-  const rootDir = determineRootDirectory();
-  return retrieveProjectDependencies(`${rootDir}/package.json`);
+  await installTools(scaffyConfObj, toolsInScaffyConfig);
 }
 
 function filterToolsInScaffyConfig(tools: string[], scaffyConf: ConfigSchema): string[] {
@@ -36,20 +33,35 @@ function filterToolsInScaffyConfig(tools: string[], scaffyConf: ConfigSchema): s
   return extractSubsetFromCollection(tools, scaffyToolNames);
 }
 
-async function installTool(scaffyConfObj: ConfigSchema, tools: string[]) {
-  const installationPromises = tools.flatMap(toolName => {
+async function installTools(scaffyConfObj: ConfigSchema, tools: string[]) {
+  const installationPromises = tools.map(toolName => {
     const toolConfigObj = scaffyConfObj[toolName];
-
-    if (isEmptyObject(toolConfigObj)) {
-      info(`${toolName} has no configuration`);
-      return [Promise.resolve('No Configuration')]
-    }
-
-    const { toolDeps, toolConfigs } = extractToolDepsAndConfigs(toolConfigObj);
-
-    return [installIndividualTool(toolName, toolDeps), downloadConfigs()];
+    return installIndividualTool(toolName, toolConfigObj);
   });
-  return installationPromises;
+
+  return Promise.allSettled(installationPromises);
+}
+
+async function installIndividualTool(
+  toolName: string,
+  toolConfObj: ConfigSchema[string]
+) {
+  info(`Setting up ${toolName}...`);
+
+  if (isEmpty.obj(toolConfObj)) {
+    info(`${toolName} has no configuration, skipping...`);
+    return Promise.reject(new Error(`No Configuration for ${toolName}`));
+  }
+
+  const projectRootDir = determineRootDirectory();
+  const { toolDeps, toolConfigs } = extractToolDepsAndConfigs(toolConfObj);
+  const { remoteConfigurations, localConfigurations } = toolConfigs;
+
+  return Promise.allSettled([
+    installIndividualToolDeps(toolName, toolDeps),
+    download(remoteConfigurations, projectRootDir),
+    copyFiles(localConfigurations, projectRootDir),
+  ]);
 }
 
 type ToolConfigs = Pick<
@@ -57,6 +69,7 @@ type ToolConfigs = Pick<
   'localConfigurations' | 'remoteConfigurations'
 >;
 type ToolDeps = Pick<ConfigSchema[string], 'deps' | 'devDeps'>;
+
 function extractToolDepsAndConfigs(toolConfObj: ConfigSchema[string]): {
   toolConfigs: ToolConfigs;
   toolDeps: ToolDeps;
@@ -69,9 +82,9 @@ function extractToolDepsAndConfigs(toolConfObj: ConfigSchema[string]): {
   return { toolConfigs, toolDeps };
 }
 
-async function installIndividualTool(tool: string, toolConfigObj?: ConfigSchema[string]) {
-  if (!toolConfigObj) exitOnUnavailableTool(tool);
-  const { devDeps, deps } = toolConfigObj;
+async function installIndividualToolDeps(tool: string, toolDeps: ToolDeps) {
+  info(`Installing Deps for ${tool}`);
+  const { devDeps, deps } = toolDeps;
 
   return Promise.allSettled([
     installDependencies(deps),
@@ -79,33 +92,42 @@ async function installIndividualTool(tool: string, toolConfigObj?: ConfigSchema[
   ]);
 }
 
-function exitOnUnavailableTool(toolName: string): never {
-  error(`No configuration found for ${toolName} in scaffy config`);
-  throw new Error('No config for tool');
-}
+async function installDependencies(deps: string[] | undefined, devDeps: boolean = false) {
+  if (!deps || isEmpty.array(deps)) {
+    return handleProcessErr(`No dependencies to install. Skipping...`);
+  }
 
-async function installDependencies(deps?: string[], devDeps: boolean = false) {
-  if (!deps || deps.length === 0) return handleInstallDependenciesError();
   const devFlag = devDeps ? '-D' : '';
-  return $`npm i ${devFlag} ${deps}`;
+  try {
+    return $`npm i ${devFlag} ${deps}`;
+  } catch (err) {
+    return handleProcessErr(
+      `Error occurred installing dependencies for this tool. Skipping`
+    );
+  }
 }
-function handleInstallDependenciesError() {
-  info(`No dependencies to install`);
+
+async function copyFiles(paths: string[] | undefined, dest: string) {
+  if (!paths || isEmpty.array(paths)) return handleProcessErr('No paths to copy');
+
+  const resolvedFilesPaths = paths.map(filepath => resolveFilePath(filepath, dest));
+  try {
+    return await $`cp -t ${dest} ${resolvedFilesPaths}`;
+  } catch (err) {
+    return handleProcessErr('Could not copy files');
+  }
 }
 
-// async function setupCustomTool(nameOfTool, shouldRemove = false) {
-//   info(`Setting up ${nameOfTool}`)
-//   const toolInstallationReq = await grabReqsFromConfig(nameOfTool);
+function handleProcessErr(msg: string) {
+  error(msg);
+  throw new Error(msg);
+}
 
-//   // These can be done in parallel
-//   await installDependencies(toolInstallationReq, shouldRemove);
-//   await installDevDependencies(toolInstallationReq, shouldRemove);
-//   await downloadRemoteConfigs(toolInstallationReq, shouldRemove);
-//   await copyLocalConfigs(toolInstallationReq, shouldRemove);
+function resolveFilePath(filepath: string, from: string): string {
+  return path.resolve(from, filepath);
+}
 
-//   success('name of tool has been successfully installed \n');
-// }
-
-function isToolListedInConfig(toolName: string, scaffyConfObj: ConfigSchema): boolean {
-  return doesObjectHaveProperty(scaffyConfObj, toolName);
+async function getProjectDependencies(): Promise<ProjectDependencies> {
+  const rootDir = determineRootDirectory();
+  return parseProjectDependencies(`${rootDir}/package.json`);
 }

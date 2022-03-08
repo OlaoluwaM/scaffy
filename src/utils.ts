@@ -111,17 +111,23 @@ export function pickObjPropsToAnotherObj<O extends AnyObject, P extends keyof O>
 
   const objWithDesiredProperties = desiredPropertyKeys.reduce((filteredObj, propName) => {
     /* eslint no-param-reassign: ["error", { "props": false }] */
-    filteredObj.propName = initialObject.propName;
+    filteredObj[propName] = initialObject[propName];
     return filteredObj;
-  }, {} as AnyObject);
+  }, {} as O);
 
   return objWithDesiredProperties as Pick<O, P>;
 }
 
-export function isEmptyObject(obj: AnyObject): boolean {
-  const EMPTY_OBJ_STRING = '{}' as const;
-  return JSON.stringify(obj) === EMPTY_OBJ_STRING;
-}
+export const isEmpty = {
+  obj(obj: AnyObject): boolean {
+    const EMPTY_OBJ_STRING = '{}' as const;
+    return JSON.stringify(obj) === EMPTY_OBJ_STRING;
+  },
+
+  array(arr: unknown[]): boolean {
+    return arr.length === 0;
+  },
+};
 
 function capitalize(str: string): Capitalize<string> {
   const lowerCaseString = str.toLocaleLowerCase();
