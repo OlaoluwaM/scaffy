@@ -4,11 +4,9 @@
 import 'zx/globals';
 
 import path from 'path';
-import {
-  parseScaffyConfig,
-  determineRootDirectory,
-  parseProjectDependencies,
-} from '../lib/helpers';
+import download from '../lib/downloadFile';
+
+import { parseScaffyConfig, determineRootDirectory } from '../lib/helpers';
 import {
   info,
   error,
@@ -17,11 +15,9 @@ import {
   extractSubsetFromCollection,
 } from '../utils';
 
-import type { ConfigSchema, ProjectDependencies } from '../compiler/types';
-import download from '../lib/downloadFile';
+import type { ConfigSchema } from '../compiler/types';
 
 export default async function install(pathToScaffyConfig: string, tools: string[]) {
-  // const projectDependencies = await getProjectDependencies();
   const scaffyConfObj = await parseScaffyConfig(pathToScaffyConfig);
   const toolsInScaffyConfig = filterToolsInScaffyConfig(tools, scaffyConfObj);
 
@@ -54,14 +50,16 @@ async function installIndividualTool(
   }
 
   const projectRootDir = determineRootDirectory();
-  const { toolDeps, toolConfigs } = extractToolDepsAndConfigs(toolConfObj);
+  const { toolDeps, toolConfigs } = extractScaffyConfigSections(toolConfObj);
   const { remoteConfigurations, localConfigurations } = toolConfigs;
 
-  return Promise.allSettled([
+  const installationResults = Promise.allSettled([
     installIndividualToolDeps(toolName, toolDeps),
     download(remoteConfigurations, projectRootDir),
     copyFiles(localConfigurations, projectRootDir),
   ]);
+
+  return installationResults;
 }
 
 type ToolConfigs = Pick<
@@ -70,7 +68,7 @@ type ToolConfigs = Pick<
 >;
 type ToolDeps = Pick<ConfigSchema[string], 'deps' | 'devDeps'>;
 
-function extractToolDepsAndConfigs(toolConfObj: ConfigSchema[string]): {
+function extractScaffyConfigSections(toolConfObj: ConfigSchema[string]): {
   toolConfigs: ToolConfigs;
   toolDeps: ToolDeps;
 } {
@@ -83,13 +81,11 @@ function extractToolDepsAndConfigs(toolConfObj: ConfigSchema[string]): {
 }
 
 async function installIndividualToolDeps(tool: string, toolDeps: ToolDeps) {
-  info(`Installing Deps for ${tool}`);
+  info(`Installing Dependencies for ${tool}`);
   const { devDeps, deps } = toolDeps;
 
-  return Promise.allSettled([
-    installDependencies(deps),
-    installDependencies(devDeps, true),
-  ]);
+  await installDependencies(deps);
+  await installDependencies(devDeps, true);
 }
 
 async function installDependencies(deps: string[] | undefined, devDeps: boolean = false) {
@@ -99,10 +95,10 @@ async function installDependencies(deps: string[] | undefined, devDeps: boolean 
 
   const devFlag = devDeps ? '-D' : '';
   try {
-    return $`npm i ${devFlag} ${deps}`;
+    return await $`npm i ${devFlag} ${deps}`;
   } catch (err) {
     return handleProcessErr(
-      `Error occurred installing dependencies for this tool. Skipping`
+      `Error occurred installing dependencies for this tool\n${err}.\nSkipping...`
     );
   }
 }
@@ -125,9 +121,4 @@ function handleProcessErr(msg: string) {
 
 function resolveFilePath(filepath: string, from: string): string {
   return path.resolve(from, filepath);
-}
-
-async function getProjectDependencies(): Promise<ProjectDependencies> {
-  const rootDir = determineRootDirectory();
-  return parseProjectDependencies(`${rootDir}/package.json`);
 }

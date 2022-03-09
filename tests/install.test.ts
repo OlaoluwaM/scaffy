@@ -20,7 +20,7 @@ process.chdir(dataDir);
 
 const pathToScaffyConfig = `./sample.scaffy.json`;
 
-test('Should make sure installation command installs deps and downloads files as required', async () => {
+test.only('Should make sure installation command installs deps and downloads files as required', async () => {
   // Arrange
   const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
   const toolToSetup = sampleScaffyConfig.eslint as RequiredConfigSchema;
@@ -28,7 +28,7 @@ test('Should make sure installation command installs deps and downloads files as
 
   // Act
   await install(pathToScaffyConfig, tools);
-  await removeEntityAt('./node_modules', 'node modules', { recursive: true });
+  // await removeEntityAt('./node_modules', 'node modules', { recursive: true });
 
   const sampleProjectDirPackageJSONObj = await parseProjectDependencies(`./package.json`);
   const samplePackageJsonDeps = Object.keys(sampleProjectDirPackageJSONObj.deps);

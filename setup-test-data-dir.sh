@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
+rootDir="$(dirname "$(realpath "$0")")"
 DATA_DIR="./tests/test-data"
+
 test -d "$DATA_DIR" && exit 0
 
 echo "Seting up test data directory...."
-
 
 echo "Recreating test data directory"
 mkdir $DATA_DIR
@@ -18,17 +19,9 @@ for DIR in "for-install" "for-uninstall"; do
 done
 
 echo "Setting up directory structure for installation command testing"
-cat <<EOL >"${DATA_DIR}/for-install/package.json"
-{
-  "name": "test-project-dir",
-  "version": "0.0.1",
-  "dependencies": {},
-  "devDependencies": {},
-  "engines": {
-    "node": ">= 0.4.1"
-  }
-}
-EOL
+cd "${DATA_DIR}/for-install" || exit
+npm ini -y 1>/dev/null
+cd "$rootDir" || exit
 
 cat <<EOL >"${DATA_DIR}/for-install/sample.scaffy.json"
 {
@@ -50,6 +43,12 @@ cat <<EOL >"${DATA_DIR}/for-uninstall/package.json"
 {
   "name": "test-project-dir",
   "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
   "dependencies": {
     "eslint-plugin-react": "^7.28.0"
   },
