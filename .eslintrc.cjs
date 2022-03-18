@@ -58,5 +58,8 @@ module.exports = {
     'import/no-named-default': 0,
 
     'no-unused-expressions': ['error', { allowShortCircuit: true }],
+
+    'no-redeclare': 'off',
+    '@typescript-eslint/no-redeclare': ['error'],
   },
 };
