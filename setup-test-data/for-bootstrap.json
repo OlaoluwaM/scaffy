@@ -1,0 +1,81 @@
+{
+  "eslint": {
+    "deps": ["eslint-plugin-react", "sss", "@babel/core"],
+    "devDeps": ["eslint", "jest", "zod"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
+    ],
+    "localConfigurations": ["../local-configs/.prettierrc"]
+  },
+
+  "react": {
+    "deps": ["react", "styled-components", "framer-motion"],
+    "devDeps": ["typescript", "react-dom", "react-hot-toast"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/.babelrc.js"
+    ],
+    "localConfigurations": ["../local-configs/main.rs", "../local-configs/sample.ts"]
+  },
+
+  "webpack": {
+    "deps": ["webpack-dev-server", "sequelize"],
+    "devDeps": ["webpack", "crossenv"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+    ],
+    "localConfigurations": [
+      "../local-configs/hello.rs",
+      "../local-configs/another-file.ts",
+      "../local-configs/some.js"
+    ]
+  },
+
+  "vue": {
+    "deps": ["ts-node", "nodemon", "vite"],
+    "devDeps": ["react-toast", "xstate"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/createDesinationsFile.sh",
+      "https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/README.md"
+    ],
+    "localConfigurations": [
+      "../local-configs/xxt.ts",
+      "../local-configs/help.ts",
+      "../local-configs/srr.ts"
+    ]
+  },
+
+  "tailwind": {
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/postcss.config.js"
+    ],
+    "localConfigurations": []
+  },
+
+  "orange": {
+    "deps": ["jest", "cypress"],
+    "localConfigurations": [
+      "../local-configs/hello.rs",
+      "../local-configs/another-file.ts",
+      "../local-configs/some.js"
+    ]
+  },
+
+  "jest": {},
+
+  "erroring1": {
+    "deps": ["#@#!", "$$#%", "l"],
+    "devDeps": ["$#!!@d", "#!@dd", "!@#ER"],
+    "remoteConfigurations": ["https://123.com/fff.pdf", "https://olfr.com/f2.pdf"],
+    "localConfigurations": ["../local-configs/s.js", "../local-configs/t.js"]
+  },
+  "someErroring": {
+    "deps": ["yargs", "dotenv", "@!!@", "##!"],
+    "devDeps": ["##$!", "@!#", "$@#D"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/cypress.json"
+    ],
+    "localConfigurations": ["../local-configs/s.js", "../local-configs/t.js"]
+  }
+}

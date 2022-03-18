@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-rootDir="$(dirname "$(realpath "$0")")"
 DATA_DIR="./tests/test-data"
 
 test -d "$DATA_DIR" && exit 0
@@ -9,37 +8,27 @@ echo "Seting up test data directory...."
 
 echo "Recreating test data directory"
 mkdir $DATA_DIR
-mkdir $DATA_DIR/{for-learning,for-remote-downloads,for-install,for-uninstall,local-configs}
+mkdir $DATA_DIR/{for-learning,for-remote-downloads,for-bootstrap-cmd,for-remove-cmd,local-configs}
 
 echo "Setting up sample local configurations for testing"
-touch $DATA_DIR/local-configs/{.prettierrc,stub.js}
+touch $DATA_DIR/local-configs/{.prettierrc,stub.js,sample.ts,another-file.ts,main.rs,hello.rs,some.js,help.ts,xxt.ts,srr.ts}
 
-for DIR in "for-install" "for-uninstall"; do
+for DIR in "for-bootstrap-cmd" "for-remove-cmd"; do
   touch $DATA_DIR/$DIR/{sample.scaffy.json,package.json}
 done
 
-echo "Setting up directory structure for installation command testing"
-cd "${DATA_DIR}/for-install" || exit
+echo "Setting up directory structure for bootstrap command testing"
+
+cd "${DATA_DIR}/for-bootstrap-cmd" || exit
 npm ini -y 1>/dev/null
-cd "$rootDir" || exit
+cd "../../../" || exit
 
-cat <<EOL >"${DATA_DIR}/for-install/sample.scaffy.json"
-{
-  "eslint": {
-  "deps": ["eslint-plugin-react"],
-  "devDeps": ["eslint"],
-  "remoteConfigurations": [
-  "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
-  ],
-  "localConfigurations": ["../local-configs/.prettierrc"]
-  }
-}
-EOL
+cat "./setup-test-data/for-bootstrap.json" >"${DATA_DIR}/for-bootstrap-cmd/sample.scaffy.json"
 
-echo "Setting up directory structure for un-installation command testing"
-touch $DATA_DIR/for-uninstall/{postcss.config.js.js,stub.js}
+echo "Setting up directory structure for remove command testing"
+touch $DATA_DIR/for-remove-cmd/{postcss.config.js.js,stub.js}
 
-cat <<EOL >"${DATA_DIR}/for-uninstall/package.json"
+cat <<EOL >"${DATA_DIR}/for-remove-cmd/package.json"
 {
   "name": "test-project-dir",
   "version": "0.0.1",
@@ -61,7 +50,7 @@ cat <<EOL >"${DATA_DIR}/for-uninstall/package.json"
 }
 EOL
 
-cat <<EOL >"${DATA_DIR}/for-uninstall/sample.scaffy.json"
+cat <<EOL >"${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
 {
   "eslint": {
   "deps": ["eslint-plugin-react"],
