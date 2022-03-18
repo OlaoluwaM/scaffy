@@ -2,7 +2,9 @@
 /* global chalk */
 
 import 'zx/globals';
-import { AnyFunction, AnyObject, Primitive } from './compiler/types';
+
+import path from 'path';
+import { AnyObject, Primitive } from '../compiler/types';
 import { ErrorHook, ERROR_HOOK } from './constants';
 
 export function info(msg: string) {
@@ -38,7 +40,10 @@ export function toMultiLineString(arr: string[]): MultiLineString {
   return arr.map(elem => `${elem}\n`).join('\n') as MultiLineString;
 }
 
-export function isSubset<T extends U, U>(superset: U[], subset: T[]): boolean {
+export function isSubset<SubS extends SupS, SupS>(
+  superset: SupS[],
+  subset: SubS[]
+): boolean {
   return subset.every(subsetElem => superset.includes(subsetElem));
 }
 
@@ -100,13 +105,29 @@ export function rawTypeOf(value: unknown): RawTypes {
 }
 
 // TODO: Test this
-export function pickObjPropsToAnotherObj<O extends AnyObject, P extends keyof O>(
+export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
+  initialObject: O,
+  targetProperties: P[],
+  excludeProperties: true
+): Omit<O, P>;
+export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
+  initialObject: O,
+  targetProperties: P[],
+  excludeProperties: false
+): Pick<O, P>;
+export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   initialObject: O,
   targetProperties: P[]
+): Pick<O, P>;
+export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
+  initialObject: O,
+  targetProperties: P[],
+  excludeProperties?: boolean
 ) {
   const desiredPropertyKeys = extractSubsetFromCollection(
     Object.keys(initialObject),
-    targetProperties
+    targetProperties,
+    excludeProperties
   ) as P[];
 
   const objWithDesiredProperties = desiredPropertyKeys.reduce((filteredObj, propName) => {
@@ -115,7 +136,7 @@ export function pickObjPropsToAnotherObj<O extends AnyObject, P extends keyof O>
     return filteredObj;
   }, {} as O);
 
-  return objWithDesiredProperties as Pick<O, P>;
+  return objWithDesiredProperties;
 }
 
 export const isEmpty = {
@@ -126,6 +147,30 @@ export const isEmpty = {
 
   array(arr: unknown[]): boolean {
     return arr.length === 0;
+  },
+};
+
+export function extractBasenameFromPath(filepath: string): string {
+  return path.basename(filepath);
+}
+
+export function normalizeArrForSentence(arr: unknown[]): string {
+  return arr.join(' ');
+}
+
+export const valueIs = {
+  not: {
+    aString(item: unknown): item is Exclude<RawTypes, 'string'> {
+      return rawTypeOf(item) === 'string';
+    },
+
+    anObject(item: unknown): item is Exclude<RawTypes, 'object'> {
+      return rawTypeOf(item) !== 'object';
+    },
+  },
+
+  anObject(item: unknown): item is {} {
+    return rawTypeOf(item) === 'object';
   },
 };
 

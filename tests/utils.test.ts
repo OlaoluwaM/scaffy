@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect } from '@jest/globals';
-import { isSubset, extractSubsetFromCollection, rawTypeOf } from '../src/utils';
+import { isSubset, extractSubsetFromCollection, rawTypeOf } from '../src/app/utils';
 
 test.each([
   [true, [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4]],

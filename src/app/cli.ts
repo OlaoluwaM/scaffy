@@ -1,25 +1,25 @@
 #!/usr/bin/env zx
 
-import install from './cmds/install';
-import outputHelp from './cmds/help';
-import outPutCliVersion from './cmds/version';
+import bootstrap from '../cmds/bootstrap';
+import outputHelp from '../cmds/help';
+import outPutCliVersion from '../cmds/version';
 
 import { info } from './utils';
-import { ExitCodes } from './compiler/types';
-import { genericErrorHandler } from './lib/helpers';
-import { ParsedArguments, cliApiObj } from './lib/parseArgs';
+import { ExitCodes } from '../compiler/types';
+import { genericErrorHandler } from './helpers';
+import { ParsedArguments, cliApiObj } from './parseArgs';
 
 export default async function cli(parsedArguments: ParsedArguments, cliApi = cliApiObj) {
   const { command, tools, pathToScaffyConfig } = parsedArguments;
 
   switch (command) {
-    case cliApi.install:
-    case cliApi.i:
-      await install(pathToScaffyConfig, tools);
+    case cliApi.bootstrap:
+    case cliApi.b:
+      await bootstrap(pathToScaffyConfig, tools);
       break;
 
-    case cliApi.uninstall:
-    case cliApi.un:
+    case cliApi.remove:
+    case cliApi.rm:
       info('Not Implemented');
       break;
 

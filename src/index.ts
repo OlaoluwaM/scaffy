@@ -3,15 +3,15 @@
 
 import 'zx/globals';
 
-import cli from './cli';
+import cli from './app/cli';
 
-import { pipe } from './utils';
+import { pipe } from './app/utils';
 import {
   RawCliArgs,
   extractCliArgs,
   sortOutRawCliArgs,
   default as parseArguments,
-} from './lib/parseArgs';
+} from './app/parseArgs';
 
 $.verbose = false;
 

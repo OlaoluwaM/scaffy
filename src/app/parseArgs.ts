@@ -5,7 +5,7 @@ import 'zx/globals';
 import path from 'path';
 import prompts from 'prompts';
 
-import { SCAFFY_CONFIG_GLOB } from '../constants';
+import { SCAFFY_CONFIG_GLOB } from './constants';
 import { EnumKeys, ExitCodes } from '../compiler/types';
 import { genericErrorHandler, searchForFile } from './helpers';
 import {
@@ -13,11 +13,11 @@ import {
   filterOutPaths,
   includedInCollection,
   extractSubsetFromCollection,
-} from '../utils';
+} from './utils';
 
 enum Commands {
-  install = 'install',
-  uninstall = 'uninstall',
+  bootstrap = 'bootstrap',
+  remove = 'remove',
   '--version' = '--version',
   '--help' = '--help',
 }
@@ -27,8 +27,8 @@ enum Options {
 }
 
 enum CommandAliases {
-  i = 'i',
-  un = 'un',
+  b = 'b',
+  rm = 'rm',
   '-h' = '-h',
   '-v' = '-v',
 }

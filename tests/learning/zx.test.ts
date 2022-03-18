@@ -6,7 +6,7 @@ import path from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect } from '@jest/globals';
 import { ProcessOutput } from 'zx';
-import { doesPathExist } from '../../src/lib/helpers';
+import { doesPathExist } from '../../src/app/helpers';
 
 async function commandWithDynamicFlags(flags: string[] = []): Promise<ProcessOutput> {
   // Using `ls` here because it does not error out when called with no args or flags

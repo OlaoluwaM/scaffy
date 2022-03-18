@@ -2,9 +2,13 @@ import path from 'path';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
-import { addException } from '../src/utils';
+import {
+  addException,
+  doesObjectHaveProperty,
+  extractBasenameFromPath,
+} from '../src/app/utils';
 import { ConfigSchema } from '../src/compiler/types';
-import { doesPathExist } from '../src/lib/helpers';
+import { doesPathExist } from '../src/app/helpers';
 
 export type RequiredConfigSchema = Required<ConfigSchema[string]>;
 
@@ -16,17 +20,16 @@ export function didAllPromisesSucceed(
 
 export function isSuccessfulPromise(
   promise: Awaited<ReturnType<typeof Promise.allSettled>>[number]
-): boolean {
-  return 'value' in promise;
+): promise is PromiseFulfilledResult<unknown> {
+  return promise.status === 'fulfilled';
 }
 
-export async function areFilesDownloaded(
-  urls: string[],
+export async function doAllFilesExist(
+  filePathArr: string[],
   destinationDir: string
 ): Promise<PromiseSettledResult<boolean>[]> {
   return Promise.allSettled(
-    urls.map(url => {
-      const filename = path.basename(url);
+    filePathArr.map(extractBasenameFromPath).map(filename => {
       const intendedPath = `${destinationDir}/${filename}`;
       const doesPathExistWithErr = addException<string[], Promise<boolean>>(
         doesPathExist

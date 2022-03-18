@@ -6,8 +6,7 @@ import 'zx/globals';
 import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
-import { ProcessOutput } from 'zx';
-import { error, info, success, extractSubsetFromCollection } from '../utils';
+import { error, info, success, extractSubsetFromCollection } from './utils';
 import {
   ExitCodes,
   ConfigSchema,
@@ -39,21 +38,6 @@ function handleDepsRetrievalError(): never {
   error('Failed to retrieve dependencies');
   error("Looks like there isn't a package.json file in your project yet");
   error('Please make sure to run this in the root directory of your project');
-  return process.exit(1);
-}
-
-export async function parseScaffyConfig(path: string): Promise<ConfigSchema> {
-  try {
-    const configObject = (await fs.readJSON(path)) as ConfigSchema;
-    return configObject;
-  } catch {
-    return handleConfigParseError();
-  }
-}
-function handleConfigParseError(): never {
-  error(
-    'Looks like your are missing a `scaffy.json` file in the root directory of your project'
-  );
   return process.exit(1);
 }
 
@@ -122,8 +106,4 @@ export async function searchForFile(globPattern: string | string[]): Promise<str
 
 export function determineRootDirectory(): string {
   return path.resolve('./');
-}
-
-function isFile(entityPath: string): boolean {
-  return !!path.extname(entityPath);
 }

@@ -1,9 +1,9 @@
 export interface ConfigSchema {
   [toolName: string]: {
-    deps?: string[];
-    devDeps?: string[];
-    remoteConfigurations?: string[];
-    localConfigurations?: string[];
+    deps: string[];
+    devDeps: string[];
+    remoteConfigurations: string[];
+    localConfigurations: string[];
   };
 }
 
@@ -31,4 +31,3 @@ export enum ExitCodes {
 export type AnyFunction = (...args: any[]) => any;
 
 export type EnumKeys<E> = keyof E;
-

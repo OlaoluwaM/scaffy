@@ -7,7 +7,7 @@ import fsPromise from 'fs/promises';
 
 import { ProcessOutput } from 'zx';
 import { isCommandAvailable, removeEntityAt } from './helpers';
-import { error, info, isEmpty, success, toMultiLineString } from '../utils';
+import { error, info, isEmpty, success, toMultiLineString } from './utils';
 
 const WGET_URL_FILENAME = 'urls.txt';
 
@@ -54,7 +54,7 @@ async function downloadWithAvailableCommand(urls: string[], destinationDir: stri
 
 async function downloadWithCurl(urls: string[], destinationDir = '.') {
   try {
-    await $`curl -LJ --output-dir "${destinationDir}" --remote-name-all ${urls} 1>/dev/null`;
+    await $`curl -LJ --max-time 900 --output-dir "${destinationDir}" --remote-name-all ${urls} 1>/dev/null`;
   } catch (processErr) {
     error(
       `Looks like an error occurred while downloading with curl: ${

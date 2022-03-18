@@ -1,9 +1,9 @@
 /* global fs */
 
 import path from 'path';
-import download from '../src/lib/downloadFile';
-
 import prompt from 'prompts';
+import download from '../src/app/downloadFile';
+
 import { ExitCodes } from '../src/compiler/types';
 import { testDataDir } from './test-setup';
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -12,12 +12,8 @@ import {
   ParsedArguments,
   sortOutRawCliArgs,
   default as parseArguments,
-} from '../src/lib/parseArgs';
-import {
-  areFilesDownloaded,
-  isSuccessfulPromise,
-  didAllPromisesSucceed,
-} from './helpers';
+} from '../src/app/parseArgs';
+import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
 
 describe('Tests for CLI arguments parsing', () => {
   const noThrowCases = [
@@ -44,9 +40,9 @@ describe('Tests for CLI arguments parsing', () => {
     ],
     [
       'with no tools',
-      ['install', '--config', '../something/ts.scaffy.json'],
+      ['bootstrap', '--config', '../something/ts.scaffy.json'],
       {
-        command: 'install',
+        command: 'bootstrap',
         tools: [],
         pathToScaffyConfig: '../something/ts.scaffy.json',
       },
@@ -124,7 +120,7 @@ describe('Tests for downloading remote configuration', () => {
       await download(sampleUrls, destinationDir, curlOrWget);
 
       const allRemoteConfigsDownloaded = didAllPromisesSucceed(
-        await areFilesDownloaded(sampleUrls, destinationDir)
+        await doAllFilesExist(sampleUrls, destinationDir)
       );
 
       // Assert
@@ -143,7 +139,7 @@ describe('Tests for downloading remote configuration', () => {
       // Act
       await download(sampleUrls, destinationDir, curlOrWget);
 
-      const remoteConfigsDownloadStatuses = await areFilesDownloaded(
+      const remoteConfigsDownloadStatuses = await doAllFilesExist(
         sampleUrlsForThisTest,
         destinationDir
       );

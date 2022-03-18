@@ -1,4 +1,4 @@
-import { info } from '../utils';
+import { info } from './utils';
 
 const helpString = `
 DESCRIPTION
@@ -9,16 +9,16 @@ USAGE:
   scaffy options
 
 COMMANDS:
-  install <tool>...          Bootstraps <tool> with your custom configuration
-  uninstall <tool>...        Removes custom configurations for <tool>
+  bootstrap <tool>...          Bootstraps <tool> with your custom configuration
+  remove <tool>...             Removes custom configurations for <tool>
 
 Aliases:
-  i                       Alias for install
-  un                      Alias for uninstall
+  b                            Alias for bootstrap command
+  rm                           Alias for remove command
 
 Options:
-  -h --help                   Show this message.
-  -v --version                Output version information.
+  -h --help                    Show this message.
+  -v --version                 Output version information.
 `;
 
 export default function outputHelp() {
