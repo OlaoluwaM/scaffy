@@ -22,6 +22,26 @@
       "windows": {
         "program": "${workspaceFolder}/node_modules/jest/bin/jest"
       }
+    },
+    {
+      "jest.jestCommandLine": "npm run test:single ${file} --",
+      "type": "node",
+      "name": "vscode-jest-tests-single",
+      "request": "launch",
+      "args": [
+        "--runInBand",
+        "--watchAll=false",
+        "--config=${workspaceFolder}/jest.config.cjs"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "runtimeArgs": ["--experimental-vm-modules"],
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      }
     }
   ]
 }
