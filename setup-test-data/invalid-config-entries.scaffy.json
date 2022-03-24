@@ -1,0 +1,27 @@
+{
+  "tailwind": {
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/postcss.config.js"
+    ],
+    "localConfigurations": []
+  },
+
+  "orange": {
+    "deps": ["jest", "cypress"],
+    "localConfigurations": [
+      "../local-configs/hello.rs",
+      "../local-configs/another-file.ts"
+    ]
+  },
+
+  "jest": {},
+
+  "bad": {
+    "deps": [1, 2, 3],
+    "localConfigurations": "Opp"
+  },
+
+  "1": 222,
+  "ddd": [],
+  "dseferwe[f[wefwefwo[f": "dwfe"
+}

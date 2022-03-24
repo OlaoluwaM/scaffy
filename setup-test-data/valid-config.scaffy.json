@@ -1,0 +1,34 @@
+{
+  "eslint": {
+    "deps": ["eslint-plugin-react", "sss", "@babel/core"],
+    "devDeps": ["eslint", "jest", "zod"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
+    ],
+    "localConfigurations": ["../local-configs/.prettierrc"]
+  },
+
+  "react": {
+    "deps": ["react", "styled-components", "framer-motion"],
+    "devDeps": ["typescript", "react-dom", "react-hot-toast"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/.babelrc.js"
+    ],
+    "localConfigurations": ["../local-configs/main.rs", "../local-configs/sample.ts"]
+  },
+
+  "webpack": {
+    "deps": ["webpack-dev-server", "sequelize"],
+    "devDeps": ["webpack", "crossenv"],
+    "remoteConfigurations": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+    ],
+    "localConfigurations": [
+      "../local-configs/hello.rs",
+      "../local-configs/another-file.ts",
+      "../local-configs/some.js"
+    ]
+  }
+}
