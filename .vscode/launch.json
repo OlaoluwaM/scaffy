@@ -24,11 +24,12 @@
       }
     },
     {
-      "jest.jestCommandLine": "npm run test:single ${file} --",
+      "jest.jestCommandLine": "npm run test:single ${fileBasename} --",
       "type": "node",
       "name": "vscode-jest-tests-single",
       "request": "launch",
       "args": [
+        "${fileBasename}",
         "--runInBand",
         "--watchAll=false",
         "--config=${workspaceFolder}/jest.config.cjs"
