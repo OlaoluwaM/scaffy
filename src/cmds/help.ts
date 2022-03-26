@@ -1,4 +1,4 @@
-import { info } from './utils';
+import { info } from '../utils';
 
 const helpString = `
 DESCRIPTION

@@ -1,11 +1,7 @@
-#!/usr/bin/env zx
-/* global $ */
-
-import 'zx/globals';
-
 import cli from './app/cli';
 
-import { pipe } from './app/utils';
+import { $ } from 'zx';
+import { pipe } from './utils';
 import {
   RawCliArgs,
   extractCliArgs,

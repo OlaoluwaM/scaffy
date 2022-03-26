@@ -1,20 +1,20 @@
 export interface ConfigSchema {
-  [toolName: string]: {
-    deps: string[];
-    devDeps: string[];
-    remoteConfigurations: string[];
-    localConfigurations: string[];
+  readonly [toolName: string]: {
+    readonly deps: string[];
+    readonly devDeps: string[];
+    readonly remoteConfigurations: string[];
+    readonly localConfigurations: string[];
   };
 }
 
 export interface Dependencies {
-  [depName: string]: string;
+  readonly [depName: string]: string;
 }
 
 export interface ProjectDependencies {
-  version: string;
-  deps: Dependencies;
-  devDeps: Dependencies;
+  readonly version: string;
+  readonly deps: Dependencies;
+  readonly devDeps: Dependencies;
 }
 
 export type Primitive = string | number;

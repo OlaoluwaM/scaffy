@@ -1,7 +1,3 @@
-#!/usr/bin/env zx
-/* globals */
-import 'zx/globals';
-
 import path from 'path';
 import prompts from 'prompts';
 
@@ -13,7 +9,7 @@ import {
   filterOutPaths,
   includedInCollection,
   extractSubsetFromCollection,
-} from './utils';
+} from '../utils';
 
 enum Commands {
   bootstrap = 'bootstrap',
@@ -41,7 +37,7 @@ export const cliApiObj = { ...Commands, ...Options, ...OptionAliases, ...Command
 
 export type CliApiString = keyof typeof cliApiObj;
 
-type CommandsApiString = Extract<
+export type CommandsApiString = Extract<
   CliApiString,
   EnumKeys<typeof Commands> | EnumKeys<typeof CommandAliases>
 >;

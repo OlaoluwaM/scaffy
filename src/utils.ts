@@ -1,11 +1,8 @@
-#!/usr/bin/env zx
-/* global chalk */
-
-import 'zx/globals';
-
 import path from 'path';
-import { AnyObject, Primitive } from '../compiler/types';
-import { ErrorHook, ERROR_HOOK } from './constants';
+
+import { chalk } from 'zx';
+import { AnyObject, Primitive } from './compiler/types';
+import { ErrorHook, ERROR_HOOK } from './app/constants';
 
 export function info(msg: string) {
   console.info(chalk.whiteBright.bold(msg));
@@ -94,16 +91,6 @@ export function extractSubsetFromCollection<R>(
   }) as R[];
 }
 
-type RawTypes = Lowercase<
-  'Function' | 'Object' | 'Array' | 'Null' | 'Undefined' | 'String' | 'Number' | 'Boolean'
->;
-export function rawTypeOf(value: unknown): RawTypes {
-  return Object.prototype.toString
-    .call(value)
-    .replace(/\[|\]|object|\s/g, '')
-    .toLocaleLowerCase() as RawTypes;
-}
-
 // TODO: Test this
 export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   initialObject: O,
@@ -139,14 +126,47 @@ export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   return objWithDesiredProperties;
 }
 
-export const isEmpty = {
-  obj(obj: AnyObject): boolean {
-    const EMPTY_OBJ_STRING = '{}' as const;
-    return JSON.stringify(obj) === EMPTY_OBJ_STRING;
+type RawTypes = Lowercase<
+  'Function' | 'Object' | 'Array' | 'Null' | 'Undefined' | 'String' | 'Number' | 'Boolean'
+>;
+export function rawTypeOf(value: unknown): RawTypes {
+  return Object.prototype.toString
+    .call(value)
+    .replace(/\[|\]|object|\s/g, '')
+    .toLocaleLowerCase() as RawTypes;
+}
+
+export const valueIs = {
+  aString(val: unknown): val is string {
+    return rawTypeOf(val) === 'string';
   },
 
-  array(arr: unknown[]): boolean {
-    return arr.length === 0;
+  anArray(val: unknown): val is unknown[] {
+    return rawTypeOf(val) === 'array';
+  },
+
+  anObject(val: unknown): val is AnyObject {
+    return rawTypeOf(val) === 'object';
+  },
+
+  aNumber(val: unknown): val is number {
+    return rawTypeOf(val) === 'number';
+  },
+};
+
+export const isEmpty = {
+  obj(possiblyEmptyObj: AnyObject): boolean {
+    const hasNoProperties = Object.keys(possiblyEmptyObj).length === 0;
+    return hasNoProperties;
+  },
+
+  array(possiblyEmptyArr: unknown[]): boolean {
+    return possiblyEmptyArr.length === 0;
+  },
+
+  string(possiblyEmptyString: string): boolean {
+    const EMPTY_STRING = '' as const;
+    return possiblyEmptyString === EMPTY_STRING;
   },
 };
 
@@ -157,22 +177,6 @@ export function extractBasenameFromPath(filepath: string): string {
 export function normalizeArrForSentence(arr: unknown[]): string {
   return arr.join(' ');
 }
-
-export const valueIs = {
-  not: {
-    aString(item: unknown): item is Exclude<RawTypes, 'string'> {
-      return rawTypeOf(item) === 'string';
-    },
-
-    anObject(item: unknown): item is Exclude<RawTypes, 'object'> {
-      return rawTypeOf(item) !== 'object';
-    },
-  },
-
-  anObject(item: unknown): item is {} {
-    return rawTypeOf(item) === 'object';
-  },
-};
 
 function capitalize(str: string): Capitalize<string> {
   const lowerCaseString = str.toLocaleLowerCase();

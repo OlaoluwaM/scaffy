@@ -1,12 +1,9 @@
-#!/usr/bin/env zx
-/* global fs, $, path, globby */
-
-import 'zx/globals';
-
+import path from 'path';
 import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
-import { error, info, success, extractSubsetFromCollection } from './utils';
+import { fs, $, globby } from 'zx';
+import { error, info, success, extractSubsetFromCollection } from '../utils';
 import {
   ExitCodes,
   ConfigSchema,

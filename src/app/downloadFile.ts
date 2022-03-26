@@ -1,13 +1,9 @@
-#!/usr/bin/env zx
-/* global $ */
-
-import 'zx/globals';
 
 import fsPromise from 'fs/promises';
 
-import { ProcessOutput } from 'zx';
+import { $, ProcessOutput } from 'zx';
 import { isCommandAvailable, removeEntityAt } from './helpers';
-import { error, info, isEmpty, success, toMultiLineString } from './utils';
+import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
 const WGET_URL_FILENAME = 'urls.txt';
 
