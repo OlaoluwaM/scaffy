@@ -3,15 +3,15 @@ import bootstrap from '../src/cmds/bootstrap';
 
 import { testDataDir } from './test-setup';
 import { ConfigSchema } from '../src/compiler/types';
-import { isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/app/utils';
+import { isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect, beforeAll } from '@jest/globals';
-import { parseScaffyConfig, parseProjectDependencies } from '../src/app/helpers';
+import { parseProjectDependencies } from '../src/app/helpers';
 import {
-  didAllPromisesSucceed,
   doAllFilesExist,
   isSuccessfulPromise,
   RequiredConfigSchema,
+  didAllPromisesSucceed,
 } from './helpers';
 
 const dataDir = `${testDataDir}/for-bootstrap-cmd`;
@@ -48,8 +48,6 @@ async function computeTooBootstrapResults(
     ...Object.keys(projectDependencies.devDeps),
   ];
 
-
-  const;
   const allToolDeps = [...(toolConfigObj?.deps ?? []), ...(toolConfigObj?.devDeps ?? [])];
 
   const installationResults: ToolBootstrapResult = {

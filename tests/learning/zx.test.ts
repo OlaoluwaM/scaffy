@@ -1,12 +1,9 @@
-/* global $ */
-import 'zx/globals';
-
 import path from 'path';
 
+import { appHelpers } from '../helpers';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect } from '@jest/globals';
-import { ProcessOutput } from 'zx';
-import { doesPathExist } from '../../src/app/helpers';
+import { $, ProcessOutput } from 'zx';
 
 async function commandWithDynamicFlags(flags: string[] = []): Promise<ProcessOutput> {
   // Using `ls` here because it does not error out when called with no args or flags
@@ -29,11 +26,11 @@ test('Should check how files are deleted in zx', async () => {
   await $`touch ${testDir}/example.txt`;
 
   // Assert
-  expect(await doesPathExist(`${testDir}/example.txt`)).toBe(true);
+  expect(await appHelpers.doesPathExist(`${testDir}/example.txt`)).toBe(true);
 
   // Act
   await $`rm -rf ${testDir}/*`;
 
   // Assert
-  expect(await doesPathExist(`${testDir}/example.txt`)).toBe(false);
+  expect(await appHelpers.doesPathExist(`${testDir}/example.txt`)).toBe(false);
 });

@@ -1,7 +1,5 @@
-
-
-import 'zx/globals';
+import { $ } from 'zx';
 import path from 'path';
 
-// $.verbose = false;
+$.verbose = false
 export const testDataDir = path.resolve('tests', './test-data/');

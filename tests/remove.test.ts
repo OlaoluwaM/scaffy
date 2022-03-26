@@ -3,13 +3,9 @@
 import path from 'path';
 // import uninstall from '../src/cmds/uninstall';
 
+import { isSubset } from '../src/utils';
 import { RequiredConfigSchema } from './helpers';
-import { isSubset } from '../src/app/utils';
-import {
-  doesPathExist,
-  parseScaffyConfig,
-  parseProjectDependencies,
-} from '../src/app/helpers';
+import { doesPathExist, parseProjectDependencies } from '../src/app/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
 const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;

@@ -1,16 +1,13 @@
-import path from 'path';
+import * as SrcUtils from '../src/utils';
+import * as AppHelpers from '../src/app/helpers';
 
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { jest } from '@jest/globals';
-import {
-  addException,
-  doesObjectHaveProperty,
-  extractBasenameFromPath,
-} from '../src/app/utils';
 import { ConfigSchema } from '../src/compiler/types';
 import { doesPathExist } from '../src/app/helpers';
 
 export type RequiredConfigSchema = Required<ConfigSchema[string]>;
+
+export const srcUtils = SrcUtils;
+export const appHelpers = AppHelpers;
 
 export function didAllPromisesSucceed(
   promises: Awaited<ReturnType<typeof Promise.allSettled>>
@@ -29,14 +26,12 @@ export async function doAllFilesExist(
   destinationDir: string
 ): Promise<PromiseSettledResult<boolean>[]> {
   return Promise.allSettled(
-    filePathArr.map(extractBasenameFromPath).map(filename => {
+    filePathArr.map(srcUtils.extractBasenameFromPath).map(filename => {
       const intendedPath = `${destinationDir}/${filename}`;
-      const doesPathExistWithErr = addException<string[], Promise<boolean>>(
+      const doesPathExistWithErr = srcUtils.addException<string[], Promise<boolean>>(
         doesPathExist
       );
       return doesPathExistWithErr(intendedPath);
     })
   );
 }
-
-export type MockedFunction = ReturnType<typeof jest.fn>;

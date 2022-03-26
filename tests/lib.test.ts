@@ -1,165 +1,176 @@
-/* global fs */
+import faker from '@faker-js/faker/locale/en';
 
-import path from 'path';
-import prompt from 'prompts';
-import download from '../src/app/downloadFile';
-
-import { ExitCodes } from '../src/compiler/types';
-import { testDataDir } from './test-setup';
+import { srcUtils } from './helpers';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { test, expect, describe } from '@jest/globals';
 import {
-  ParsedArguments,
-  sortOutRawCliArgs,
-  default as parseArguments,
-} from '../src/app/parseArgs';
-import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
+  ArrayValidator,
+  ObjectValidator,
+  StringValidator,
+  InterfaceToValidatorSchema,
+  NumberValidator,
+} from '../src/lib/schema-validator';
 
-describe('Tests for CLI arguments parsing', () => {
-  const noThrowCases = [
-    [
-      'with valid arguments',
-      ['i', 'eslint', 'react', '-c', '../dest/scaffy.json'],
-      {
-        command: 'i',
-        tools: ['eslint', 'react'],
-        pathToScaffyConfig: '../dest/scaffy.json',
-      },
-    ],
-    [
-      'with defaults handled properly',
-      ['un', 'react', '@babel/core', 'typescript'],
-      {
-        command: 'un',
-        tools: ['react', '@babel/core', 'typescript'],
-        pathToScaffyConfig: path.relative(
-          './',
-          `${testDataDir}/local-configs/test.scaffy.json`
-        ),
-      },
-    ],
-    [
-      'with no tools',
-      ['bootstrap', '--config', '../something/ts.scaffy.json'],
-      {
-        command: 'bootstrap',
-        tools: [],
-        pathToScaffyConfig: '../something/ts.scaffy.json',
-      },
-    ],
-    [
-      'with multiple config options passed',
-      ['i', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
-      {
-        command: 'i',
-        tools: [],
-        pathToScaffyConfig: './some/scaffy.json',
-      },
-    ],
-  ] as [string, string[], ParsedArguments][];
-
-  test.each(noThrowCases)(
-    'Should ensure cli args are parsed correctly %s',
-    async (str, sampleCliArgs, desiredOutputObj) => {
-      // Arrange
-      if (str.includes('defaults')) {
-        prompt.inject([(desiredOutputObj as ParsedArguments).pathToScaffyConfig]);
-      }
-
-      // Act
-      const output = await parseArguments(sortOutRawCliArgs(sampleCliArgs));
-
-      // Assert
-      expect(output).toEqual(desiredOutputObj);
-    }
-  );
-
-  test('Should exit on invalid command', async () => {
+describe('Tests for schema validation library', () => {
+  test('success when object matches schema', () => {
     // Arrange
-    const argsToParse = sortOutRawCliArgs([
-      'oof',
-      '-c',
-      './some/scaffy.json',
-      '-c',
-      '../some/scaffy.json',
-    ]);
+    interface SampleObject {
+      a: string;
+      c: string;
+      b: string[];
+    }
+    const sampleObject: SampleObject = {
+      a: faker.datatype.string(4),
+      c: faker.datatype.string(4),
+      b: faker.datatype.array().filter(srcUtils.valueIs.aString),
+    };
 
-    const mockExit = jest
-      .spyOn(process, 'exit')
-      .mockImplementationOnce(() => '1' as never);
+    const schema: InterfaceToValidatorSchema<SampleObject> = {
+      a: StringValidator(),
+      c: StringValidator(),
+      b: ArrayValidator(StringValidator()),
+    };
 
     // Act
-    await parseArguments(argsToParse);
+    const validationResult = ObjectValidator<SampleObject>(schema)({
+      value: sampleObject,
+      path: ['sample object'],
+    });
 
     // Assert
-    expect(mockExit).toHaveBeenCalledWith(ExitCodes.COMMAND_NOT_FOUND);
+    expect(validationResult.isValid).toBe(true);
+    expect(validationResult.errors.length).toEqual(0);
   });
-});
-
-describe('Tests for downloading remote configuration', () => {
-  // Arrange All
-  const sampleUrls = [
-    'https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/others/nativefy.sh',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/.eslintignore',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/jest.config.js',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/craco.config.js',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/postcss.config.js',
-  ];
-
-  const SUB_TEST_DIR_FOR_TEST = 'for-remote-downloads' as const;
-  const destinationDir = `${testDataDir}/${SUB_TEST_DIR_FOR_TEST}`;
-
-  beforeEach(async () => {
-    await fs.emptyDir(destinationDir);
-  });
-
-  test.each([['curl'], ['wget'], ['no specified command']])(
-    'Should make sure that all remote configs can be downloaded with %s',
-    async curlOrWget => {
-      // Act
-      await download(sampleUrls, destinationDir, curlOrWget);
-
-      const allRemoteConfigsDownloaded = didAllPromisesSucceed(
-        await doAllFilesExist(sampleUrls, destinationDir)
-      );
-
-      // Assert
-      expect(allRemoteConfigsDownloaded).toBe(true);
+  test('error when object does not match schema', () => {
+    // Arrange
+    interface SampleObject {
+      c: string[];
+      b: string[];
     }
-  );
 
-  test.each([['curl'], ['wget'], ['no specified command']])(
-    'Should make sure that remote configs can be downloaded even if some cannot be downloaded using %s',
-    async curlOrWget => {
+    const sampleObject: SampleObject = {
+      c: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      b: faker.datatype.array().filter(srcUtils.valueIs.aString),
+    };
+
+    const schema = {
+      a: StringValidator(),
+      c: StringValidator(),
+      b: StringValidator(),
+    };
+
+    // Act
+    const validationResult = ObjectValidator(schema)({
+      value: sampleObject as any,
+      path: ['sample object'],
+    });
+
+    // Assert
+    expect(validationResult.isValid).toBe(false);
+    expect(validationResult.errors.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('That validation exits immediately on reference type mismatch', () => {
+    // Act
+    const { errors: arrayMismatchErrors } = ArrayValidator(StringValidator())({
+      value: faker.datatype.number() as any,
+      path: ['initial array'],
+    });
+
+    const { errors: objectMismatchErrors } = ObjectValidator({
+      foo: StringValidator(),
+    })({ value: faker.datatype.array() as any, path: ['initial object'] });
+
+    // Assert
+    expect([arrayMismatchErrors.length, objectMismatchErrors.length]).toEqual([1, 1]);
+  });
+
+  test('That schema violations can be excluded from object', () => {
+    // Arrange
+    const sampleObject = {
+      a: faker.datatype.string(4),
+      c: faker.datatype.number(4),
+      b: faker.datatype.array().filter(srcUtils.valueIs.aNumber),
+      e: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      f: faker.datatype.number(10),
+    };
+
+    const desiredOutputObj = srcUtils.pickObjPropsToAnotherObj(sampleObject, ['a', 'e']);
+
+    const schema = {
+      a: StringValidator(),
+      c: StringValidator(),
+      b: ArrayValidator(StringValidator()),
+      e: ArrayValidator(StringValidator()),
+      f: ArrayValidator(NumberValidator()),
+    };
+
+    // Act
+    const validationResult = ObjectValidator(schema, { filterViolations: true })({
+      value: sampleObject as any,
+      path: ['sample object'],
+    });
+
+    // Assert
+    expect(validationResult.isValid).toBe(true);
+    expect(validationResult.errors.length).toEqual(0);
+    expect(validationResult.value).toEqual(desiredOutputObj);
+  });
+  test('That nothing is excluded if there are no schema violations', () => {
+    // Arrange
+    const sampleObject = {
+      a: faker.datatype.string(4),
+      c: faker.datatype.number(4),
+      b: faker.datatype.array().filter(srcUtils.valueIs.aNumber),
+      e: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      f: faker.datatype.number(10),
+    };
+
+    const schema: InterfaceToValidatorSchema<typeof sampleObject> = {
+      a: StringValidator(),
+      c: NumberValidator(),
+      b: ArrayValidator(NumberValidator()),
+      e: ArrayValidator(StringValidator()),
+      f: NumberValidator(),
+    };
+
+    // Act
+    const validationResult = ObjectValidator(schema, { filterViolations: true })({
+      value: sampleObject,
+      path: ['sample object'],
+    });
+
+    // Assert
+    expect(validationResult.isValid).toBe(true);
+    expect(validationResult.errors.length).toEqual(0);
+    expect(validationResult.value).toEqual(sampleObject);
+  });
+
+  test.each([[true], [false]])(
+    "That object is returned as is if it contains some members of the schema with correct types",
+    filterViolations => {
       // Arrange
-      const sampleUrlsForThisTest = [...sampleUrls];
-      sampleUrlsForThisTest[0] = 'https://hgkgyguiu/gyfkffyyggugi.png';
-      sampleUrlsForThisTest[1] = 'https://hgkgyguilbgifuttuku/gyfkffyyiohohhuggugi.png';
+      const sampleObject = {
+        a: faker.datatype.string(4),
+        c: faker.datatype.number(4),
+      };
+
+      const schema = {
+        a: StringValidator(),
+        c: NumberValidator(),
+        b: ArrayValidator(NumberValidator()),
+        e: ArrayValidator(StringValidator()),
+        f: NumberValidator(),
+      };
 
       // Act
-      await download(sampleUrls, destinationDir, curlOrWget);
-
-      const remoteConfigsDownloadStatuses = await doAllFilesExist(
-        sampleUrlsForThisTest,
-        destinationDir
-      );
-
-      const numberOfRemoteConfigsDownload =
-        remoteConfigsDownloadStatuses.filter(isSuccessfulPromise).length;
+      const validationResult = ObjectValidator(schema, { filterViolations })({
+        value: sampleObject as any,
+        path: ['sample object'],
+      });
 
       // Assert
-      expect(numberOfRemoteConfigsDownload).toBe(sampleUrls.length - 2);
-
-      // Assert
-      // let spiedConsole;
-      // if (curlOrWget === 'curl') {
-      //   spiedConsole = jest.spyOn(console, 'error');
-      // }
-
-      // spiedConsole &&
-      //   expect(spiedConsole).toHaveBeenCalledWith(
-      //     expect.stringMatching(/.*(retrying|wget)/i)
-      //   );
+      expect(validationResult.value).toEqual(sampleObject);
     }
   );
 });
