@@ -2,5 +2,6 @@
   "cSpell.words": ["cmds", "ependencies", "globbed", "postbuild", "scaffy"],
   "jest.nodeEnv": {
     "NODE_OPTIONS": "--experimental-vm-modules"
-  }
+  },
+  "jest.autoRun": "off"
 }
