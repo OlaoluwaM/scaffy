@@ -17,6 +17,7 @@
     "test": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --",
     "test:silent": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --silent",
     "test:single": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern --",
+    "test:single:silent": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --silent --testPathPattern --",
     "prepare": "husky install"
   },
   "keywords": [],
