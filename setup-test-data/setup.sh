@@ -64,6 +64,6 @@ cat <<EOL >"${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
 EOL
 
 echo "Setting up other other-data dir"
-cp $rootDir/{valid-config.scaffy.json,invalid-config.scaffy.json,invalid-config-entries.scaffy.json} $DATA_DIR/other-data/
+cp $rootDir/{valid-config.scaffy.json,invalid-config.scaffy.json,partial-invalid-config-entries.scaffy.json} $DATA_DIR/other-data/
 
 echo "Done!"

@@ -1,9 +1,10 @@
 {
   "tailwind": {
+    "deps": "111",
     "remoteConfigurations": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/postcss.config.js"
     ],
-    "localConfigurations": []
+    "localConfigurations": 1234
   },
 
   "orange": {
@@ -11,10 +12,15 @@
     "localConfigurations": [
       "../local-configs/hello.rs",
       "../local-configs/another-file.ts"
-    ]
+    ],
+    "remoteConfigurations": {}
   },
 
-  "jest": {},
+  "jest": {
+    "deps": 123
+  },
+
+  "ang": {},
 
   "bad": {
     "deps": [1, 2, 3],
