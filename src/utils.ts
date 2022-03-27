@@ -2,7 +2,7 @@ import path from 'path';
 
 import { chalk } from 'zx';
 import { AnyObject, Primitive } from './compiler/types';
-import { ErrorHook, ERROR_HOOK } from './app/constants';
+import { ErrorHook, ERROR_HOOK } from './constants';
 
 export function info(msg: string) {
   console.info(chalk.whiteBright.bold(msg));
@@ -37,11 +37,27 @@ export function toMultiLineString(arr: string[]): MultiLineString {
   return arr.map(elem => `${elem}\n`).join('\n') as MultiLineString;
 }
 
-export function isSubset<SubS extends SupS, SupS>(
-  superset: SupS[],
-  subset: SubS[]
+export function isSubset<PSubS extends PSupS, PSupS>(
+  potentialSuperset: PSupS[],
+  potentialSubset: PSubS[]
 ): boolean {
-  return subset.every(subsetElem => superset.includes(subsetElem));
+  return potentialSubset.some(potentialSubsetElem =>
+    potentialSuperset.includes(potentialSubsetElem)
+  );
+}
+
+export function isObjSubset<PSubS extends AnyObject, PSupS extends AnyObject>(
+  potentialSupersetObj: PSupS,
+  potentialSubsetObj: PSubS
+): boolean {
+  const potentialSubset = Object.entries(potentialSubsetObj);
+
+  return potentialSubset.some(([key, value]) => {
+    const propertyInSuperset = potentialSupersetObj[key];
+    const propertyMatchesInSuperset = rawTypeOf(value) === rawTypeOf(propertyInSuperset);
+
+    return !!propertyInSuperset && propertyMatchesInSuperset;
+  });
 }
 
 export function filterOutPaths(arr: string[]): string[] {

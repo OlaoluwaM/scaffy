@@ -3,23 +3,22 @@ import prompt from 'prompts';
 import download from '../src/app/downloadFile';
 
 import { fs as fsExtra } from 'zx';
-import { ConfigSchema, ExitCodes } from '../src/compiler/types';
 import { testDataDir } from './test-setup';
+import { ObjectValidator } from '../src/lib/schema-validator';
+import { ConfigEntry, ExitCodes } from '../src/compiler/types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
 import {
   ParsedArguments,
   sortOutRawCliArgs,
-  default as parseArguments,
   CommandsApiString,
+  default as parseArguments,
 } from '../src/app/parseArgs';
-import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
-import { CONFIG_ENTRY_SCHEMA, parseScaffyConfig } from '../src/app/parseConfig';
 import {
-  ArrayValidator,
-  ObjectValidator,
-  StringValidator,
-} from '../src/lib/schema-validator';
+  CONFIG_ENTRY_SCHEMA,
+  default as parseScaffyConfig,
+} from '../src/app/parseConfig';
 
 describe('Tests for CLI arguments parsing', () => {
   const noThrowCases: [string, [CommandsApiString, ...string[]], ParsedArguments][] = [
@@ -60,6 +59,78 @@ describe('Tests for CLI arguments parsing', () => {
         command: 'b',
         tools: [],
         pathToScaffyConfig: './some/scaffy.json',
+      },
+    ],
+    [
+      'with help alias and some other arguments',
+      ['-h', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      {
+        command: '-h',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with help alias only',
+      ['-h'],
+      {
+        command: '-h',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with help command and some other arguments',
+      ['--help', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      {
+        command: '--help',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with help command only',
+      ['--help'],
+      {
+        command: '--help',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with version alias and some other arguments',
+      ['-v', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      {
+        command: '-v',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with version alias only',
+      ['-v'],
+      {
+        command: '-v',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with version command and some other arguments',
+      ['--version', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      {
+        command: '--version',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+    ],
+    [
+      'with version command only',
+      ['--version'],
+      {
+        command: '--version',
+        tools: [],
+        pathToScaffyConfig: '',
       },
     ],
   ];
@@ -176,9 +247,12 @@ describe('Tests for scaffy schema parsing', () => {
     expect(parsedConfigObj).toEqual(rawConfigObj);
   });
 
-  test('That parser errors on invalid config file ', async () => {
+  test.each([
+    ['on invalid config file', 'invalid-config.scaffy.json'],
+    ['on empty config file', 'empty-config.scaffy.json'],
+  ])('That parser errors out %s', async configBasename => {
     // Arrange
-    const configFilePath = `${configDir}/invalid-config.scaffy.json`;
+    const configFilePath = `${configDir}/${configBasename}`;
     const spiedStderr = jest.spyOn(console, 'error');
     const spiedProcess = jest
       .spyOn(process, 'exit')
@@ -198,13 +272,10 @@ describe('Tests for scaffy schema parsing', () => {
 
     // Act
     const parsedConfigObj = await parseScaffyConfig(configFilePath);
-    console.dir(JSON.stringify(parsedConfigObj, null, 2));
 
     const allConfigEntriesAreNormalized = Object.values(parsedConfigObj).every(
       toolConfigEntry => {
-        const { isValid } = ObjectValidator<ConfigSchema[string]>(
-          CONFIG_ENTRY_SCHEMA
-        )({
+        const { isValid } = ObjectValidator<ConfigEntry>(CONFIG_ENTRY_SCHEMA)({
           value: toolConfigEntry,
           path: ['parsedConfigObj'],
         });

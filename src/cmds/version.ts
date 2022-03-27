@@ -1,10 +1,7 @@
-#!/usr/bin/env zx
-/* global path */
+import path from 'path';
 
-import 'zx/globals';
-
-import { info } from './utils';
-import { __dirname } from '../app/constants';
+import { info } from '../utils';
+import { __dirname } from '../constants';
 import { parseProjectDependencies } from '../app/helpers';
 
 export default async function outPutCliVersion() {

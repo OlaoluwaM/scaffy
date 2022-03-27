@@ -1,4 +1,3 @@
-
 import fsPromise from 'fs/promises';
 
 import { $, ProcessOutput } from 'zx';
@@ -6,17 +5,18 @@ import { isCommandAvailable, removeEntityAt } from './helpers';
 import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
 const WGET_URL_FILENAME = 'urls.txt';
+const MAX_TIMEOUT_FOR_DOWNLOAD = 300;
 
 enum CurlOrWget {
   Curl = 'curl',
   Wget = 'wget',
 }
 export default async function download(
-  urls: string[] | undefined,
+  urls: string[],
   destinationDir: string,
   utilToUse?: CurlOrWget
 ) {
-  if (!urls || isEmpty.array(urls)) return;
+  if (isEmpty.array(urls)) return;
 
   switch (utilToUse) {
     case CurlOrWget.Curl:
@@ -50,7 +50,7 @@ async function downloadWithAvailableCommand(urls: string[], destinationDir: stri
 
 async function downloadWithCurl(urls: string[], destinationDir = '.') {
   try {
-    await $`curl -LJ --max-time 900 --output-dir "${destinationDir}" --remote-name-all ${urls} 1>/dev/null`;
+    await $`curl -LJ --connect-timeout ${MAX_TIMEOUT_FOR_DOWNLOAD} --output-dir "${destinationDir}" --remote-name-all ${urls} 1>/dev/null`;
   } catch (processErr) {
     error(
       `Looks like an error occurred while downloading with curl: ${
@@ -65,7 +65,7 @@ async function downloadWithWget(urls: string[], destinationDir = '.'): Promise<v
   await createTempUrlListFileForWgetDownload(urls, destinationDir);
 
   try {
-    await $`wget -i ${WGET_URL_FILE_PATH} -P ${destinationDir} 1>/dev/null`;
+    await $`wget -T ${MAX_TIMEOUT_FOR_DOWNLOAD} -i ${WGET_URL_FILE_PATH} -P ${destinationDir} 1>/dev/null`;
   } catch (processError) {
     error(`Error Downloading with wget: ${(processError as ProcessOutput).stderr}\n`);
   } finally {

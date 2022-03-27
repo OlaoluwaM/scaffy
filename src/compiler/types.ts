@@ -7,6 +7,8 @@ export interface ConfigSchema {
   };
 }
 
+export type ConfigEntry = ConfigSchema[string]
+
 export interface Dependencies {
   readonly [depName: string]: string;
 }

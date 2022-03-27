@@ -1,10 +1,11 @@
 /* global test, expect */
 
 import path from 'path';
+import parseScaffyConfig from '../src/app/parseConfig';
 // import uninstall from '../src/cmds/uninstall';
 
 import { isSubset } from '../src/utils';
-import { RequiredConfigSchema } from './helpers';
+import { ConfigEntry } from '../src/compiler/types';
 import { doesPathExist, parseProjectDependencies } from '../src/app/helpers';
 
 const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
@@ -14,7 +15,7 @@ test.skip('Should make sure un-installation command removes deps and downloads f
   // Arrange
   const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
 
-  const toolToSetup = sampleScaffyConfig.eslint as RequiredConfigSchema;
+  const toolToSetup = sampleScaffyConfig.eslint as ConfigEntry;
   // const tools = ['react', 'tailwind', ...Object.keys(sampleScaffyConfig)];
 
   // Act

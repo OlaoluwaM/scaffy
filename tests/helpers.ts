@@ -1,10 +1,7 @@
 import * as SrcUtils from '../src/utils';
 import * as AppHelpers from '../src/app/helpers';
 
-import { ConfigSchema } from '../src/compiler/types';
 import { doesPathExist } from '../src/app/helpers';
-
-export type RequiredConfigSchema = Required<ConfigSchema[string]>;
 
 export const srcUtils = SrcUtils;
 export const appHelpers = AppHelpers;

@@ -123,7 +123,7 @@ describe('Tests for schema validation library', () => {
       c: faker.datatype.number(4),
       b: faker.datatype.array().filter(srcUtils.valueIs.aNumber),
       e: faker.datatype.array().filter(srcUtils.valueIs.aString),
-      f: faker.datatype.number(10),
+      f: faker.datatype.boolean() ? 0 : faker.datatype.number(10),
     };
 
     const schema: InterfaceToValidatorSchema<typeof sampleObject> = {
@@ -147,7 +147,7 @@ describe('Tests for schema validation library', () => {
   });
 
   test.each([[true], [false]])(
-    "That object is returned as is if it contains some members of the schema with correct types",
+    'That object is returned as is if it contains some members of the schema with correct types',
     filterViolations => {
       // Arrange
       const sampleObject = {
@@ -173,4 +173,31 @@ describe('Tests for schema validation library', () => {
       expect(validationResult.value).toEqual(sampleObject);
     }
   );
+
+  test('That objects with only invalid properties are considered as schema violations', () => {
+    // Arrange
+    const sampleObject = {
+      e: faker.datatype.string(4),
+      g: faker.datatype.number(4),
+      j: faker.datatype.array(),
+    };
+
+    const schema = {
+      a: StringValidator(),
+      c: NumberValidator(),
+      b: ArrayValidator(NumberValidator()),
+      n: ArrayValidator(StringValidator()),
+      f: NumberValidator(),
+    };
+
+    // Act
+    const validationResult = ObjectValidator(schema)({
+      value: sampleObject as any,
+      path: ['sample object'],
+    });
+
+    // Assert
+    expect(validationResult.errors.length).toBe(Object.keys(schema).length);
+    expect(validationResult.isValid).toBe(false);
+  });
 });

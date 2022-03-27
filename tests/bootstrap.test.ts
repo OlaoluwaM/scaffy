@@ -1,29 +1,30 @@
 /* eslint-disable no-restricted-syntax */
 import bootstrap from '../src/cmds/bootstrap';
+import parseScaffyConfig from '../src/app/parseConfig';
 
 import { testDataDir } from './test-setup';
-import { ConfigSchema } from '../src/compiler/types';
-import { isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { test, expect, beforeAll } from '@jest/globals';
 import { parseProjectDependencies } from '../src/app/helpers';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { test, expect, beforeAll, jest } from '@jest/globals';
+import { ConfigEntry, ConfigSchema, ExitCodes } from '../src/compiler/types';
+import { isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
 import {
+  srcUtils,
   doAllFilesExist,
   isSuccessfulPromise,
-  RequiredConfigSchema,
   didAllPromisesSucceed,
 } from './helpers';
 
 const dataDir = `${testDataDir}/for-bootstrap-cmd`;
 const pathToScaffyConfig = `./sample.scaffy.json`;
 
-let toolNames: string[];
+let toolNamesInConfig: string[];
 let sampleScaffyConfig: ConfigSchema;
 
 beforeAll(async () => {
   process.chdir(dataDir);
   sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
-  toolNames = Object.keys(sampleScaffyConfig);
+  toolNamesInConfig = Object.keys(sampleScaffyConfig);
 });
 
 type InstallationStatuses = 'toolDepsInstalled' | 'configsRetrieved';
@@ -37,9 +38,9 @@ interface OtherToolBootstrapResultMembers {
 type ToolBootstrapResult = MappedToolBootstrapResultMembers &
   OtherToolBootstrapResultMembers;
 
-async function computeTooBootstrapResults(
-  toolConfigObj: ConfigSchema[string],
-  toolName?: string
+async function computeToolBootstrapResults(
+  toolConfigObj: ConfigEntry,
+  toolName: string = 'tool'
 ): Promise<ToolBootstrapResult> {
   const projectDependencies = await parseProjectDependencies(`./package.json`);
 
@@ -48,26 +49,30 @@ async function computeTooBootstrapResults(
     ...Object.keys(projectDependencies.devDeps),
   ];
 
-  const allToolDeps = [...(toolConfigObj?.deps ?? []), ...(toolConfigObj?.devDeps ?? [])];
+  const { deps, devDeps, remoteConfigurations, localConfigurations } = toolConfigObj;
+  const allToolDeps = [...deps, ...devDeps];
+  const allToolConfigs = [...localConfigurations, ...remoteConfigurations].map(
+    srcUtils.extractBasenameFromPath
+  );
 
   const installationResults: ToolBootstrapResult = {
     name: toolName,
     toolDepsInstalled: wereToolDepsInstalled(allPackageJsonDeps, allToolDeps),
-    configsRetrieved: await areToolConfigFilesAvailableInProjectDir(),
+    configsRetrieved: await areToolConfigFilesAvailableInProjectDir(allToolConfigs),
   };
 
   return installationResults;
 }
 
-function wereToolDepsInstalled(projectDeps: string[], toolDeps?: string[]): boolean {
-  if (!toolDeps || isEmpty.array(toolDeps)) return true;
+function wereToolDepsInstalled(projectDeps: string[], toolDeps: string[]): boolean {
+  if (isEmpty.array(toolDeps)) return true;
   return isSubset(projectDeps, toolDeps);
 }
 
 async function areToolConfigFilesAvailableInProjectDir(
-  fileArr?: string[]
+  fileArr: string[]
 ): Promise<boolean> {
-  if (!fileArr || isEmpty.array(fileArr)) return true;
+  if (isEmpty.array(fileArr)) return true;
 
   const fileLocationPromisesResult = await doAllFilesExist(fileArr, '.');
   return didAllPromisesSucceed(fileLocationPromisesResult);
@@ -83,73 +88,68 @@ function bootstrapWasSuccessful(bootstrapResults: ToolBootstrapResult): boolean 
   return installationStatuses.every(bool => bool === true);
 }
 
-test.skip('Should make sure bootstrap command installs deps and retrieves files as required for a single tool scaffolding (bootstrapping)', async () => {
+test('Should make sure bootstrap command installs deps and retrieves files as required for a single tool scaffolding (bootstrapping)', async () => {
   // Arrange
-  const tools = [toolNames[0], 'sfsfsd', 'svwrefrw', 'fewfwe'];
-  const toolToBootStrap = sampleScaffyConfig[tools[0]] as RequiredConfigSchema;
+  const sampleToolsArg = [toolNamesInConfig[0], 'sfsfsd', 'svwrefrw', 'fewfwe'];
+  const testSubjectToolCOnfig = sampleScaffyConfig[sampleToolsArg[0]] as ConfigEntry;
 
   // Act
-  await bootstrap(pathToScaffyConfig, tools);
+  await bootstrap(pathToScaffyConfig, sampleToolsArg);
 
   const wasToolBootStrapASuccess = bootstrapWasSuccessful(
-    await computeTooBootstrapResults(toolToBootStrap)
+    await computeToolBootstrapResults(testSubjectToolCOnfig)
   );
 
   // Assert
   expect(wasToolBootStrapASuccess).toBe(true);
 });
 
-// const testcases: [string, number, number | undefined][] = [
-//   [
-//     "Should ensure that installation succeeds even if some parts of a tool's config are incorrect'",
-//     7,
-//     undefined,
-//   ],
-// ];
-const testcases: [string, number, number | undefined][] = [
-  ["Should ensure that multiple tools can be bootstrapped successfully'", 1, 4],
-  [
-    "Should ensure that multiple tools can be bootstrapped even with some undefined config options'",
-    4,
-    7,
-  ],
+const testCases: [string, number, number | undefined][] = [
+  ['successfully if configs are valid', 1, 4],
+  ["even with some undefined/omitted config options'", 4, 7],
+  ["even with some invalid config options'", 7, undefined],
 ];
-test.each(testcases)('%s', async (str, start, end) => {
+
+test.each(testCases)(
+  'Should ensure that multiple tools can be bootstrapped %s',
+  async (_, startIndex, endIndex) => {
+    // Arrange
+    const sampleToolsArg = toolNamesInConfig.slice(startIndex, endIndex);
+
+    // Act
+    await bootstrap(pathToScaffyConfig, sampleToolsArg);
+
+    // Assert
+    const bootstrapResultPromises = sampleToolsArg.map(toolName => {
+      const toolConfig = sampleScaffyConfig[toolName];
+      return computeToolBootstrapResults(toolConfig, toolName);
+    });
+
+    const bootstrapPromiseResults = await Promise.allSettled(bootstrapResultPromises);
+
+    const toolBootstrapResultsBooleanArr = bootstrapPromiseResults.map(promiseResult =>
+      isSuccessfulPromise(promiseResult)
+    );
+
+    const allBootstrapAttemptsWereSuccessful = toolBootstrapResultsBooleanArr.every(
+      booleanResult => booleanResult === true
+    );
+
+    expect(allBootstrapAttemptsWereSuccessful).toBe(true);
+  }
+);
+
+test('That bootstrap command errors if tools specified as args are not present in scaffy config', async () => {
   // Arrange
-  const tools = toolNames.slice(start, end);
+  const sampleToolsArg: string[] = [];
 
   // Act
-  await bootstrap(pathToScaffyConfig, tools);
+  const mockedProcessExit = jest
+    .spyOn(process, 'exit')
+    .mockImplementationOnce(() => true as never);
+
+  await bootstrap(pathToScaffyConfig, sampleToolsArg);
 
   // Assert
-  const bootstrapResultPromises = tools.map(toolName => {
-    const toolConfig = sampleScaffyConfig[toolName];
-    return computeTooBootstrapResults(toolConfig, toolName);
-  });
-
-  const bootstrapPromiseResults = await Promise.allSettled(bootstrapResultPromises);
-
-  const toolBootstrapResultsBooleanArr = bootstrapPromiseResults.map(promiseResult => {
-    if (isSuccessfulPromise(promiseResult)) console.dir(promiseResult?.value);
-    return isSuccessfulPromise(promiseResult);
-  });
-
-  const allBootstrapAttemptsWereSuccessful = toolBootstrapResultsBooleanArr.every(
-    booleanResult => booleanResult === true
-  );
-
-  expect(allBootstrapAttemptsWereSuccessful).toBe(true);
+  expect(mockedProcessExit).toHaveBeenCalledWith(ExitCodes.GENERAL);
 });
-
-// test.skip("Should ensure that installation succeeds even when certain parts of a tool's config are omitted", () => {
-//   // Arrange
-//   // const toolsToBootStrap []
-//   // Act
-//   // Assert
-// });
-
-// test.skip(, () => {
-//   // Arrange
-//   // Act
-//   // Assert
-// });

@@ -12,7 +12,7 @@ mkdir "$DATA_DIR"
 mkdir $DATA_DIR/{for-learning,for-remote-downloads,for-bootstrap-cmd,for-remove-cmd,local-configs,other-data}
 
 echo "Setting up sample local configurations for testing"
-touch $DATA_DIR/local-configs/{.prettierrc,stub.js,sample.ts,another-file.ts,main.rs,hello.rs,some.js,help.ts,xxt.ts,srr.ts}
+touch $DATA_DIR/local-configs/{.prettierrc,stub.js,sample.ts,another-file.ts,main.rs,hello.rs,some.js,help.ts,xxt.ts,srr.ts,m.ts}
 
 for DIR in "for-bootstrap-cmd" "for-remove-cmd"; do
   touch $DATA_DIR/$DIR/{sample.scaffy.json,package.json}
@@ -64,6 +64,6 @@ cat <<EOL >"${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
 EOL
 
 echo "Setting up other other-data dir"
-cp $rootDir/{valid-config.scaffy.json,invalid-config.scaffy.json,partial-invalid-config-entries.scaffy.json} $DATA_DIR/other-data/
+cp $rootDir/{valid-config,invalid-config,partial-invalid-config-entries,empty-config}.scaffy.json $DATA_DIR/other-data/
 
 echo "Done!"

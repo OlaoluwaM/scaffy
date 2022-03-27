@@ -1,58 +1,99 @@
-#!/usr/bin/env zx
-/* global fs */
+import { fs as fsExtra } from 'zx';
+import { error, isEmpty, valueIs } from '../utils';
+import { AnyObject, ConfigEntry, ConfigSchema } from '../compiler/types';
+import {
+  ArrayValidator,
+  StringValidator,
+  ObjectValidator,
+  InterfaceToValidatorSchema,
+} from '../lib/schema-validator';
 
-import 'zx/globals';
+type RawConfigSchema = { [toolName: string]: Partial<ConfigEntry> };
 
-import { error, isEmpty, valueIs } from './utils';
-import { AnyObject, ConfigSchema } from '../compiler/types';
-
-type RawConfigSchema = { [toolName: string]: Partial<ConfigSchema[string]> };
-
-const defaultConfigObj: ConfigSchema[string] = {
-  deps: [],
-  devDeps: [],
-  localConfigurations: [],
-  remoteConfigurations: [],
+export const CONFIG_ENTRY_SCHEMA: InterfaceToValidatorSchema<ConfigEntry> = {
+  deps: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  devDeps: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  localConfigurations: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  remoteConfigurations: ArrayValidator(StringValidator(), { allowEmpty: true }),
 };
 
-export async function parseScaffyConfig(path: string): Promise<ConfigSchema> {
+export default async function parseScaffyConfig(path: string): Promise<ConfigSchema> {
   try {
-    const rawConfig = (await fs.readJSON(path)) as unknown;
+    const rawConfig = (await fsExtra.readJSON(path)) as unknown;
     validateRawConfig(rawConfig);
-    // const configObjAsArray = Object.entries(configObject).map(([_, toolConfEntry]) => ({
-    //   ...defaultConfigObj,
-    // }));
-    // return configObject;
-  } catch {
-    return handleConfigParseError();
+    const validConfigObj = normalizeRawConfigEntries(rawConfig);
+    return validConfigObj;
+  } catch (err) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : 'Looks like your are missing a `scaffy.json` file in the root directory of your project';
+
+    error(message);
+    return process.exit(1);
   }
 }
-function handleConfigParseError(): never {
-  error(
-    'Looks like your are missing a `scaffy.json` file in the root directory of your project'
-  );
-  return process.exit(1);
-}
 
-function validateRawConfig(rawConfig: unknown): asserts rawConfig is RawConfigSchema {
-  const parsedConfigIsNotAnObject = valueIs.not.anObject(rawConfig);
+// NOTE: Exposed for testing purposes only
+export function validateRawConfig(
+  rawConfig: unknown
+): asserts rawConfig is RawConfigSchema {
+  const parsedConfigIsNotAnObject = !valueIs.anObject(rawConfig);
   if (parsedConfigIsNotAnObject) throw new TypeError('Your config must be an object');
 
-  const parsedConfigObjIsEmpty = isEmpty.obj(rawConfig as {});
+  const parsedConfigObjIsEmpty = isEmpty.obj(rawConfig);
   if (parsedConfigObjIsEmpty) throw new Error('Your config is empty');
 
-  const anyKeyInParsedConfigIsNotAString = Object.keys(rawConfig as {}).some(
-    valueIs.not.aString
-  );
-  if (anyKeyInParsedConfigIsNotAString)
+  const containsNonStringKeys = !Object.keys(rawConfig).every(valueIs.aString);
+  if (containsNonStringKeys)
     throw new TypeError('All keys in your config must be strings');
 }
 
-function validateConfigEntryForTools(rawConfig: RawConfigSchema): ConfigSchema {
-  const toolEntriesArray = Object.entries(rawConfig);
-  const normalizedToolEntries = toolEntriesArray.map(([_, toolEntryObj]) => {});
+function normalizeRawConfigEntries(rawConfig: RawConfigSchema): ConfigSchema {
+  const rawConfigEntries = Object.entries(rawConfig);
+  const rawConfigEntriesWithoutEmptyEntries = rawConfigEntries.filter(
+    ([_, entry]) => !isEmpty.obj(entry)
+  );
+
+  const validConfigEntries = rawConfigEntriesWithoutEmptyEntries
+    .map(([toolName, toolConfig]) => {
+      const normalizedConfigEntry = normalizeConfigEntry(toolConfig, toolName);
+      if (!normalizedConfigEntry) return null;
+
+      const validConfigEntry =
+        fillInMissingEntryMembersIfNecessary(normalizedConfigEntry);
+      return [toolName, validConfigEntry];
+    })
+    .filter(Boolean) as [string, ConfigEntry][];
+
+  return Object.fromEntries(validConfigEntries);
 }
 
-function validateConfigEntrySchema(config: AnyObject): ConfigSchema[string] {
-  const foo: (keyof ConfigSchema[string])[] = Object.keys(defaultConfigObj);
+function normalizeConfigEntry(
+  val: Partial<ConfigEntry> | AnyObject,
+  toolName: string
+): Partial<ConfigEntry> | null {
+  const { isValid, value } = ObjectValidator<ConfigEntry>(CONFIG_ENTRY_SCHEMA, {
+    filterViolations: true,
+    allowEmpty: false,
+  })({
+    value: val as any,
+    path: [`Config entry for ${toolName}`],
+  });
+
+  if (!isValid || isEmpty.obj(value)) return null;
+  return value;
+}
+
+function fillInMissingEntryMembersIfNecessary(
+  normalizedConfigEntry: Partial<ConfigEntry>
+): ConfigEntry {
+  const DEFAULT_CONFIG_ENTRY: ConfigEntry = {
+    deps: [],
+    devDeps: [],
+    localConfigurations: [],
+    remoteConfigurations: [],
+  };
+
+  return { ...DEFAULT_CONFIG_ENTRY, ...normalizedConfigEntry };
 }

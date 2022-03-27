@@ -1,7 +1,7 @@
 import path from 'path';
 import prompts from 'prompts';
 
-import { SCAFFY_CONFIG_GLOB } from './constants';
+import { SCAFFY_CONFIG_GLOB } from '../constants';
 import { EnumKeys, ExitCodes } from '../compiler/types';
 import { genericErrorHandler, searchForFile } from './helpers';
 import {
@@ -41,6 +41,7 @@ export type CommandsApiString = Extract<
   CliApiString,
   EnumKeys<typeof Commands> | EnumKeys<typeof CommandAliases>
 >;
+type CliInfoApiString = Extract<CliApiString, '-v' | '-h' | '--help' | '--version'>;
 
 type PossibleCommand = string;
 type RestOfCliArgs = string[];
@@ -59,36 +60,56 @@ const cliCommandsApiArr = Object.keys({
   ...CommandAliases,
 }) as CommandsApiString[];
 
+const cliInfoApiStrings = ['-h', '--help', '--version', '-v'] as CliInfoApiString[];
+
 export default async function parseArguments(
   cliArgs: RawCliArgs
 ): Promise<ParsedArguments> {
   const [possibleCommand, restOfCliArgs] = cliArgs;
 
+  const { command, isCliInfoCmd } = extractCommandInsightFromCliArgs(possibleCommand);
+
   const parsedArgsObj: ParsedArguments = {
-    command: extractCommandFromCliArgs(possibleCommand, cliCommandsApiArr),
-    tools: extractToolsFromCliArgs(restOfCliArgs),
-    pathToScaffyConfig: await extractPathToConfFromCliArgs(restOfCliArgs),
+    command,
+    tools: extractToolsFromCliArgs(restOfCliArgs, isCliInfoCmd),
+    pathToScaffyConfig: await extractPathToConfFromCliArgs(restOfCliArgs, isCliInfoCmd),
   };
 
   return parsedArgsObj;
 }
 
-function extractCommandFromCliArgs(
-  possibleCommand: PossibleCommand,
-  commandsApiArr: CommandsApiString[]
-): CommandsApiString {
-  if (includedInCollection(commandsApiArr, possibleCommand)) {
-    return possibleCommand;
-  }
-
-  return genericErrorHandler(
-    `${possibleCommand} is not a supported command`,
-    true,
-    ExitCodes.COMMAND_NOT_FOUND
-  );
+interface CommandInsight {
+  command: CommandsApiString;
+  isCliInfoCmd: boolean;
 }
 
-function extractToolsFromCliArgs(restOfCliArgs: RestOfCliArgs): string[] {
+function extractCommandInsightFromCliArgs(possibleCommand: PossibleCommand): CommandInsight {
+  if (!includedInCollection(cliCommandsApiArr, possibleCommand)) {
+    return genericErrorHandler(
+      `${possibleCommand} is not a supported command`,
+      true,
+      ExitCodes.COMMAND_NOT_FOUND
+    );
+  }
+
+  const commandInsight: CommandInsight = {
+    command: possibleCommand,
+    isCliInfoCmd: false,
+  };
+
+  if (includedInCollection(cliInfoApiStrings, possibleCommand)) {
+    commandInsight.isCliInfoCmd = true;
+  }
+
+  return commandInsight;
+}
+
+function extractToolsFromCliArgs(
+  restOfCliArgs: RestOfCliArgs,
+  isInfoCmd: boolean
+): string[] {
+  if (isInfoCmd) return [];
+
   const parsedTools = pipe(
     extractSubsetFromCollection.bind(null, restOfCliArgs, cliApiStringArr, true),
     filterOutPaths
@@ -97,7 +118,12 @@ function extractToolsFromCliArgs(restOfCliArgs: RestOfCliArgs): string[] {
   return parsedTools;
 }
 
-async function extractPathToConfFromCliArgs(cliArgs: string[]): Promise<string> {
+async function extractPathToConfFromCliArgs(
+  cliArgs: string[],
+  isInfoCmd: boolean
+): Promise<string> {
+  if (isInfoCmd) return '';
+
   const indexOfPathOption = cliArgs.findIndex(
     arg => arg === cliApiObj['--config'] || arg === cliApiObj['-c']
   );

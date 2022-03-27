@@ -1,12 +1,11 @@
-#!/usr/bin/env zx
-/* global $ */
-
-import 'zx/globals';
-
 import path from 'path';
 import download from '../app/downloadFile';
 
-import { parseScaffyConfig, determineRootDirectory } from '../app/helpers';
+import parseScaffyConfig from '../app/parseConfig';
+
+import { $ } from 'zx';
+import { ConfigEntry, ConfigSchema } from '../compiler/types';
+import { determineRootDirectory, genericErrorHandler } from '../app/helpers';
 import {
   info,
   error,
@@ -15,13 +14,23 @@ import {
   normalizeArrForSentence,
   pickObjPropsToAnotherObj,
   extractSubsetFromCollection,
-} from '../app/utils';
+} from '../utils';
 
-import type { ConfigSchema } from '../compiler/types';
-
-export default async function bootstrap(pathToScaffyConfig: string, tools: string[]) {
+export default async function bootstrap(
+  pathToScaffyConfig: string,
+  toolsSpecified: string[]
+) {
   const scaffyConfObj = await parseScaffyConfig(pathToScaffyConfig);
-  const toolsInScaffyConfig = filterToolsAvailableInScaffyConfig(tools, scaffyConfObj);
+  const toolsInScaffyConfig = filterToolsAvailableInScaffyConfig(
+    toolsSpecified,
+    scaffyConfObj
+  );
+  if (isEmpty.array(toolsInScaffyConfig)) {
+    genericErrorHandler(
+      'Seems like non of those tools were specified in your scaffy config',
+      false
+    );
+  }
 
   await installAllToolDeps(toolsInScaffyConfig, scaffyConfObj);
   await retrieveToolConfigurations(scaffyConfObj, toolsInScaffyConfig);
@@ -45,13 +54,13 @@ async function installAllToolDeps(
     )}`
   );
 
-  const aggregateDependenciesToBeInstalled = extractDepsForDesiredTools(
+  const aggregateDependenciesToBeInstalled = aggregateDepTypeForDesiredTools(
     toolsToBootStrap,
     scaffyConfObj,
     'deps'
   );
 
-  const aggregateDevDependenciesToBeInstalled = extractDepsForDesiredTools(
+  const aggregateDevDependenciesToBeInstalled = aggregateDepTypeForDesiredTools(
     toolsToBootStrap,
     scaffyConfObj,
     'devDeps'
@@ -63,15 +72,17 @@ async function installAllToolDeps(
   success('Dependencies and DevDependencies installed successfully!');
 }
 
-type DependencyTypes = Extract<keyof ConfigSchema[string], 'deps' | 'devDeps'>;
-function extractDepsForDesiredTools(
+type DependencyTypes = Extract<keyof ConfigEntry, 'deps' | 'devDeps'>;
+function aggregateDepTypeForDesiredTools(
   tools: string[],
   scaffyConfObj: ConfigSchema,
-  dependencyType: DependencyTypes
+  dependencyTypeToAggregate: DependencyTypes
 ): string[] {
   const deps = tools
     .flatMap(toolName => {
-      const targetDependencies = scaffyConfObj[toolName][dependencyType];
+      const targetDependencies = scaffyConfObj[toolName][dependencyTypeToAggregate];
+      if (isEmpty.array(targetDependencies)) return null;
+
       return targetDependencies;
     })
     .filter(Boolean) as string[];
@@ -79,8 +90,8 @@ function extractDepsForDesiredTools(
   return deps;
 }
 
-async function installDependencies(deps: string[] | undefined, devDeps: boolean = false) {
-  if (!deps || isEmpty.array(deps)) {
+async function installDependencies(deps: string[], devDeps: boolean = false) {
+  if (isEmpty.array(deps)) {
     return error(`No dependencies to install. Skipping...`);
   }
 
@@ -101,16 +112,8 @@ async function retrieveToolConfigurations(scaffyConfObj: ConfigSchema, tools: st
   return Promise.allSettled(retrievalPromises);
 }
 
-async function retrieveIndividualConfigs(
-  toolName: string,
-  toolConfObj: ConfigSchema[string]
-) {
+async function retrieveIndividualConfigs(toolName: string, toolConfObj: ConfigEntry) {
   info(`Retrieving configurations for ${toolName}...`);
-
-  if (isEmpty.obj(toolConfObj)) {
-    info(`${toolName} has no configuration files specified, skipping...`);
-    return Promise.reject(new Error(`No Configuration for ${toolName}`));
-  }
 
   const projectRootDir = determineRootDirectory();
 
@@ -125,13 +128,10 @@ async function retrieveIndividualConfigs(
   return installationResults;
 }
 
-type ToolConfigs = Pick<
-  ConfigSchema[string],
-  'localConfigurations' | 'remoteConfigurations'
->;
-type ToolDeps = Pick<ConfigSchema[string], 'deps' | 'devDeps'>;
+type ToolConfigs = Pick<ConfigEntry, 'localConfigurations' | 'remoteConfigurations'>;
+type ToolDeps = Pick<ConfigEntry, 'deps' | 'devDeps'>;
 
-function extractScaffyConfigSections(toolConfObj: ConfigSchema[string]): {
+function extractScaffyConfigSections(toolConfObj: ConfigEntry): {
   toolConfigs: ToolConfigs;
   toolDeps: ToolDeps;
 } {
@@ -143,8 +143,8 @@ function extractScaffyConfigSections(toolConfObj: ConfigSchema[string]): {
   return { toolConfigs, toolDeps };
 }
 
-async function copyFiles(paths: string[] | undefined, dest: string) {
-  if (!paths || isEmpty.array(paths)) return handleProcessErr('No paths to copy');
+async function copyFiles(paths: string[], dest: string) {
+  if (isEmpty.array(paths)) return handleProcessErr('No paths to copy');
 
   const resolvedFilesPaths = paths.map(filepath => resolveFilePath(filepath, dest));
   try {

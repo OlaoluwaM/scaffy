@@ -3,16 +3,38 @@ import { srcUtils } from './helpers';
 import { test, expect, describe } from '@jest/globals';
 // import { isSubset, extractSubsetFromCollection, rawTypeOf } from '../src/utils';
 
-describe('Tests for asserting array subsets', () => {
+describe('Tests for asserting array and object subsets', () => {
   test.each([
     [true, [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4]],
     [false, [1, 2, 3, 4, 5, 6, 7, 8], [11, 21, 12, 43]],
+    [false, [1, 2, 3, 4, 5, 6, 7, 8], []],
+    [true, [1, 2, 3, 4, 5, 6, 7, 8], [999, 323, 3123, 1, 4, 2, 12123]],
   ])(
-    'Should check that we can determine if array B being a true subset of array A is %s with isSubset utility function',
+    'Should check that we can determine if array B being a true subset of array A is %s with utility function',
     (expected, arrA, arrB) => {
       // Arrange
       // Act
       const arrAIsSubsetOfArrB = srcUtils.isSubset(arrA, arrB);
+
+      // Assert
+      expect(arrAIsSubsetOfArrB).toBe(expected);
+    }
+  );
+  test.each([
+    [true, { a: 1, b: 2, c: 4, d: 'aa' }, { g: 1, f: 2, c: 4 }],
+    [true, { a: 1, b: 2, c: 4, d: 'aa' }, { a: 1, b: 2, c: 4, d: 'aa' }],
+    [true, { a: 1, b: 2, c: 4, d: 'aa' }, { c: 4, d: 'aa' }],
+    [true, { a: 1, b: 2, c: 4, d: 'aa' }, { h: 1, l: 2, c: 4, d: 'aa' }],
+    [false, { a: 1, b: 2, c: 4, d: 'aa' }, { a: 'dd', b: 'rr', c: 'asda', d: 34 }],
+    [false, { a: 1, b: 2, c: 4, d: 'aa' }, { c: [], d: 322 }],
+    [false, { f: 4, l: 'o', k: 'adad', r: 33 }, { h: 1, ml: 2, c: 4, d: 'aa' }],
+    [false, { f: 4, l: 'o', k: 'adad', r: 33 }, {}],
+  ])(
+    'Should check that we can determine if object B being a subset of object A is %s with utility function',
+    (expected, arrA, arrB) => {
+      // Arrange
+      // Act
+      const arrAIsSubsetOfArrB = srcUtils.isObjSubset(arrA, arrB);
 
       // Assert
       expect(arrAIsSubsetOfArrB).toBe(expected);
@@ -29,7 +51,7 @@ describe('Tests for handling subsets of arrays', () => {
     [[1, 2, 3, 4, 5, 6, 7], [55, 32, 43], [1, 2, 3, 4, 5, 6, 7], true],
     [[11, 44, 23, 433, 12, 433, 4], [], [11, 44, 23, 433, 12, 433, 4], true],
   ])(
-    'Should check that we can extract and exclude subsets from collections with utility function',
+    'Should check that we can extract and exclude subsets from arrays with utility function',
     (firstArg, secondArg, expectation, shouldExclude) => {
       // Act
       const output = srcUtils.extractSubsetFromCollection(

@@ -62,20 +62,36 @@
     ]
   },
 
-  "jest": {},
+  "batty": {
+    "deps": ["tsup"]
+  },
+
+  "bad": {
+    "deps": ["j", "n", "trash-cli"],
+    "devDeps": 123,
+    "localConfigurations": "Opp",
+    "remoteConfigurations": ["../local-configs/t.js"]
+  },
 
   "erroring1": {
     "deps": ["#@#!", "$$#%", "l"],
     "devDeps": ["$#!!@d", "#!@dd", "!@#ER"],
     "remoteConfigurations": ["https://123.com/fff.pdf", "https://olfr.com/f2.pdf"],
-    "localConfigurations": ["../local-configs/s.js", "../local-configs/t.js"]
+    "localConfigurations": ["../local-configs/m.ts"]
   },
+
   "someErroring": {
     "deps": ["yargs", "dotenv", "@!!@", "##!"],
     "devDeps": ["##$!", "@!#", "$@#D"],
     "remoteConfigurations": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/cypress.json"
     ],
-    "localConfigurations": ["../local-configs/s.js", "../local-configs/t.js"]
-  }
+    "localConfigurations": ["../local-configs/s.js"]
+  },
+
+  "1": 222,
+  "ddd": [],
+  "dseferwe[f[wefwefwo[f": "dwfe",
+
+  "jest": {}
 }
