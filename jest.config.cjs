@@ -5,6 +5,11 @@ module.exports = {
   testEnvironment: 'node',
   verbose: true,
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
+  coveragePathIgnorePatterns: [
+    '<rootDir>/src/lib/schema-validator.ts',
+    '<rootDir>/src/lib/schema-validator-oop.ts',
+    '<rootDir>/src/lib/schema-validator-oop/',
+  ],
   setupFilesAfterEnv: ['<rootDir>/tests/test-setup.ts'],
   transform: {},
   extensionsToTreatAsEsm: ['.ts'],
