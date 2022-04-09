@@ -7,16 +7,12 @@ export interface ConfigSchema {
   };
 }
 
-export type ConfigEntry = ConfigSchema[string]
+export type ConfigEntry = ConfigSchema[string];
 
+type DependencyName = string;
+type DependencyVersion = string;
 export interface Dependencies {
-  readonly [depName: string]: string;
-}
-
-export interface ProjectDependencies {
-  readonly version: string;
-  readonly deps: Dependencies;
-  readonly devDeps: Dependencies;
+  readonly [depName: DependencyName]: DependencyVersion;
 }
 
 export type Primitive = string | number;

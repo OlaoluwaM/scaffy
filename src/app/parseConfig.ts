@@ -1,12 +1,12 @@
 import { fs as fsExtra } from 'zx';
-import { error, isEmpty, valueIs } from '../utils';
-import { AnyObject, ConfigEntry, ConfigSchema } from '../compiler/types';
+import { error, isEmpty, rawTypeOf, valueIs } from '../utils';
+import { AnyObject, ConfigEntry, ConfigSchema, ExitCodes } from '../compiler/types';
 import {
   ArrayValidator,
   StringValidator,
   ObjectValidator,
   InterfaceToValidatorSchema,
-} from '../lib/schema-validator';
+} from '../lib/schema-validator/index';
 
 type RawConfigSchema = { [toolName: string]: Partial<ConfigEntry> };
 
@@ -30,14 +30,11 @@ export default async function parseScaffyConfig(path: string): Promise<ConfigSch
         : 'Looks like your are missing a `scaffy.json` file in the root directory of your project';
 
     error(message);
-    return process.exit(1);
+    return process.exit(ExitCodes.GENERAL);
   }
 }
 
-// NOTE: Exposed for testing purposes only
-export function validateRawConfig(
-  rawConfig: unknown
-): asserts rawConfig is RawConfigSchema {
+function validateRawConfig(rawConfig: unknown): asserts rawConfig is RawConfigSchema {
   const parsedConfigIsNotAnObject = !valueIs.anObject(rawConfig);
   if (parsedConfigIsNotAnObject) throw new TypeError('Your config must be an object');
 
@@ -52,7 +49,7 @@ export function validateRawConfig(
 function normalizeRawConfigEntries(rawConfig: RawConfigSchema): ConfigSchema {
   const rawConfigEntries = Object.entries(rawConfig);
   const rawConfigEntriesWithoutEmptyEntries = rawConfigEntries.filter(
-    ([_, entry]) => !isEmpty.obj(entry)
+    ([_, entry]) => rawTypeOf(entry) === 'object' && !isEmpty.obj(entry)
   );
 
   const validConfigEntries = rawConfigEntriesWithoutEmptyEntries
@@ -66,7 +63,8 @@ function normalizeRawConfigEntries(rawConfig: RawConfigSchema): ConfigSchema {
     })
     .filter(Boolean) as [string, ConfigEntry][];
 
-  return Object.fromEntries(validConfigEntries);
+  const validConfigObj = Object.fromEntries(validConfigEntries);
+  return validConfigObj;
 }
 
 function normalizeConfigEntry(

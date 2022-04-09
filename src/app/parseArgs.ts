@@ -68,12 +68,21 @@ export default async function parseArguments(
   const [possibleCommand, restOfCliArgs] = cliArgs;
 
   const { command, isCliInfoCmd } = extractCommandInsightFromCliArgs(possibleCommand);
+  let parsedArgsObj: ParsedArguments;
 
-  const parsedArgsObj: ParsedArguments = {
-    command,
-    tools: extractToolsFromCliArgs(restOfCliArgs, isCliInfoCmd),
-    pathToScaffyConfig: await extractPathToConfFromCliArgs(restOfCliArgs, isCliInfoCmd),
-  };
+  if (isCliInfoCmd) {
+    parsedArgsObj = {
+      command,
+      tools: [],
+      pathToScaffyConfig: '',
+    };
+  } else {
+    parsedArgsObj = {
+      command,
+      tools: extractToolsFromCliArgs(restOfCliArgs),
+      pathToScaffyConfig: await extractPathToConfFromCliArgs(restOfCliArgs),
+    };
+  }
 
   return parsedArgsObj;
 }
@@ -83,7 +92,9 @@ interface CommandInsight {
   isCliInfoCmd: boolean;
 }
 
-function extractCommandInsightFromCliArgs(possibleCommand: PossibleCommand): CommandInsight {
+function extractCommandInsightFromCliArgs(
+  possibleCommand: PossibleCommand
+): CommandInsight {
   if (!includedInCollection(cliCommandsApiArr, possibleCommand)) {
     return genericErrorHandler(
       `${possibleCommand} is not a supported command`,
@@ -106,10 +117,7 @@ function extractCommandInsightFromCliArgs(possibleCommand: PossibleCommand): Com
 
 function extractToolsFromCliArgs(
   restOfCliArgs: RestOfCliArgs,
-  isInfoCmd: boolean
 ): string[] {
-  if (isInfoCmd) return [];
-
   const parsedTools = pipe(
     extractSubsetFromCollection.bind(null, restOfCliArgs, cliApiStringArr, true),
     filterOutPaths
@@ -120,10 +128,7 @@ function extractToolsFromCliArgs(
 
 async function extractPathToConfFromCliArgs(
   cliArgs: string[],
-  isInfoCmd: boolean
 ): Promise<string> {
-  if (isInfoCmd) return '';
-
   const indexOfPathOption = cliArgs.findIndex(
     arg => arg === cliApiObj['--config'] || arg === cliApiObj['-c']
   );
@@ -135,8 +140,7 @@ async function extractPathToConfFromCliArgs(
   return cliArgs[indexOfActualPath];
 }
 
-// For testing purposes only
-export async function getDesiredScaffyConfigMatch(
+async function getDesiredScaffyConfigMatch(
   globPattern = SCAFFY_CONFIG_GLOB
 ): Promise<string> {
   const patternMatches = await searchForFile(globPattern);
