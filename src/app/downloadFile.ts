@@ -4,19 +4,23 @@ import { $, ProcessOutput } from 'zx';
 import { isCommandAvailable, removeEntityAt } from './helpers';
 import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
-const WGET_URL_FILENAME = 'urls.txt';
-const MAX_TIMEOUT_FOR_DOWNLOAD = 300;
+const { IS_TEST = false } = process.env;
+const MAX_TIMEOUT_FOR_DOWNLOAD = IS_TEST ? 10 : 300;
 
 enum CurlOrWget {
   Curl = 'curl',
   Wget = 'wget',
 }
+
 export default async function download(
   urls: string[],
   destinationDir: string,
   utilToUse?: CurlOrWget
 ) {
-  if (isEmpty.array(urls)) return;
+  if (isEmpty.array(urls)) {
+    info('Nothing to download. Skipping.');
+    return;
+  }
 
   switch (utilToUse) {
     case CurlOrWget.Curl:
@@ -61,30 +65,33 @@ async function downloadWithCurl(urls: string[], destinationDir = '.') {
 }
 
 async function downloadWithWget(urls: string[], destinationDir = '.'): Promise<void> {
-  const WGET_URL_FILE_PATH = `${destinationDir}/${WGET_URL_FILENAME}`;
-  await createTempUrlListFileForWgetDownload(urls, destinationDir);
+  const WGET_URL_LIST_FILENAME = 'urls.txt';
+  const WGET_URL_LIST_FILE_PATH = `${destinationDir}/${WGET_URL_LIST_FILENAME}`;
+  await createTempUrlListFileForWgetDownload(
+    urls,
+    WGET_URL_LIST_FILENAME,
+    destinationDir
+  );
 
   try {
-    await $`wget -T ${MAX_TIMEOUT_FOR_DOWNLOAD} -i ${WGET_URL_FILE_PATH} -P ${destinationDir} 1>/dev/null`;
+    await $`wget -T ${MAX_TIMEOUT_FOR_DOWNLOAD} -i ${WGET_URL_LIST_FILE_PATH} -P ${destinationDir} 1>/dev/null`;
   } catch (processError) {
     error(`Error Downloading with wget: ${(processError as ProcessOutput).stderr}\n`);
   } finally {
-    await removeEntityAt(WGET_URL_FILE_PATH, 'wget url list file');
+    await removeEntityAt(WGET_URL_LIST_FILE_PATH, 'wget url list file');
   }
 }
 
 // Wget needs a file of multiline urls as argument for multiple downloads
 async function createTempUrlListFileForWgetDownload(
   urls: string[],
+  urlListFilename: string,
   destinationDir = '.'
 ) {
   const multilineUrlString = toMultiLineString(urls);
 
   try {
-    await fsPromise.writeFile(
-      `${destinationDir}/${WGET_URL_FILENAME}`,
-      multilineUrlString
-    );
+    await fsPromise.writeFile(`${destinationDir}/${urlListFilename}`, multilineUrlString);
   } catch (err) {
     throw new Error(`Could not create temp-urls file for wget download: ${err}`);
   }
