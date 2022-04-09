@@ -194,12 +194,14 @@ export function normalizeArrForSentence(arr: unknown[]): string {
   return arr.join(' ');
 }
 
-function capitalize(str: string): Capitalize<string> {
-  const lowerCaseString = str.toLocaleLowerCase();
-  const letterToCapitalize = lowerCaseString[0];
-
-  return lowerCaseString.replace(
-    letterToCapitalize,
-    letterToCapitalize.toLocaleUpperCase()
-  );
+// NOTE: Copy on write ops
+export function objSet<
+  Obj extends AnyObject,
+  Prop extends string | number,
+  NewValue extends Obj[Prop]
+>(obj: Obj, property: Prop, value: NewValue): Obj & { [key in Prop]: NewValue } {
+  return {
+    ...obj,
+    ...{ [property]: value },
+  };
 }
