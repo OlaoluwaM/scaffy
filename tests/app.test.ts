@@ -2,23 +2,23 @@ import path from 'path';
 import prompt from 'prompts';
 import download from '../src/app/downloadFile';
 
-import { fs as fsExtra } from 'zx';
 import { testDataDir } from './test-setup';
+import { fs as fsExtra } from 'zx';
 import { ObjectValidator } from '../src/lib/schema-validator';
 import { ConfigEntry, ExitCodes } from '../src/compiler/types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
 import {
+  CONFIG_ENTRY_SCHEMA,
+  default as parseScaffyConfig,
+} from '../src/app/parseConfig';
+import {
   ParsedArguments,
   sortOutRawCliArgs,
   CommandsApiString,
   default as parseArguments,
 } from '../src/app/parseArgs';
-import {
-  CONFIG_ENTRY_SCHEMA,
-  default as parseScaffyConfig,
-} from '../src/app/parseConfig';
 
 describe('Tests for CLI arguments parsing', () => {
   const noThrowCases: [string, [CommandsApiString, ...string[]], ParsedArguments][] = [
@@ -223,8 +223,9 @@ describe('Tests for downloading remote configuration', () => {
         destinationDir
       );
 
+      const successfulPromises = isSuccessfulPromise
       const numberOfRemoteConfigsDownload =
-        remoteConfigsDownloadStatuses.filter(isSuccessfulPromise).length;
+        remoteConfigsDownloadStatuses.filter(successfulPromises).length;
 
       // Assert
       expect(numberOfRemoteConfigsDownload).toBe(sampleUrls.length - 2);
