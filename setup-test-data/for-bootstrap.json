@@ -1,6 +1,6 @@
 {
   "eslint": {
-    "deps": ["eslint-plugin-react", "sss", "@babel/core"],
+    "deps": ["eslint-plugin-react", "emotion", "yup"],
     "devDeps": ["eslint", "jest", "zod"],
     "remoteConfigurations": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
@@ -76,7 +76,7 @@
   "erroring1": {
     "deps": ["#@#!", "$$#%", "l"],
     "devDeps": ["$#!!@d", "#!@dd", "!@#ER"],
-    "remoteConfigurations": ["https://123.com/fff.pdf", "https://olfr.com/f2.pdf"],
+    "remoteConfigurations": ["https://olfr.com/fff.pdf", "https://olfr.com/f2.pdf"],
     "localConfigurations": ["../local-configs/m.ts"]
   },
 

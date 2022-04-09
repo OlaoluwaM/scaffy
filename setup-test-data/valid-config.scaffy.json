@@ -1,6 +1,6 @@
 {
   "eslint": {
-    "deps": ["eslint-plugin-react", "sss", "@babel/core"],
+    "deps": ["eslint-plugin-react", "sss", "j"],
     "devDeps": ["eslint", "jest", "zod"],
     "remoteConfigurations": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"

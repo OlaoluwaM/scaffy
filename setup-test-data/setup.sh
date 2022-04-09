@@ -3,7 +3,7 @@
 rootDir=$(dirname "$(realpath "$0")")
 DATA_DIR="$(dirname "$rootDir")/tests/test-data"
 
-test -d "$DATA_DIR" && exit 0
+test -d "$DATA_DIR" && rm -rf "$DATA_DIR"
 
 echo "Seting up test data directory...."
 
