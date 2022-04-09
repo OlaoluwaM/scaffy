@@ -24,8 +24,8 @@ test.skip('Should make sure un-installation command removes deps and downloads f
   const sampleProjectDirPackageJSONObj = await parseProjectDependencies(
     pathToSampleProjectDir
   );
-  const samplePackageJsonDeps = Object.keys(sampleProjectDirPackageJSONObj.deps);
-  const samplePackageJsonDevDeps = Object.keys(sampleProjectDirPackageJSONObj.devDeps);
+  const samplePackageJsonDeps = Object.keys(sampleProjectDirPackageJSONObj.dependencies);
+  const samplePackageJsonDevDeps = Object.keys(sampleProjectDirPackageJSONObj.devDependencies);
 
   const sampleProjectDepsDoNotContainsScaffyDeps = [
     !isSubset(samplePackageJsonDeps, toolToSetup.deps),

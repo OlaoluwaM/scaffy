@@ -3,19 +3,20 @@ import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
 import { fs, $, globby } from 'zx';
-import { error, info, success, extractSubsetFromCollection } from '../utils';
-import {
-  ExitCodes,
-  ConfigSchema,
-  Dependencies,
-  ProjectDependencies,
-} from '../compiler/types';
+import { ExitCodes, ConfigSchema, Dependencies } from '../compiler/types';
+import { error, info, success, extractSubsetFromCollection, objSet } from '../utils';
 
 interface SamplePackageJson {
-  version: string;
-  dependencies: Dependencies;
-  devDependencies: Dependencies;
+  readonly version: string;
+  readonly dependencies: Dependencies;
+  readonly devDependencies: Dependencies;
 }
+interface ProjectDependencies extends SamplePackageJson {
+  readonly originalObj: {
+    -readonly [Key in keyof SamplePackageJson]: SamplePackageJson[Key];
+  };
+}
+
 export async function parseProjectDependencies(
   pathToPackageJson: string
 ): Promise<ProjectDependencies> {
@@ -24,26 +25,17 @@ export async function parseProjectDependencies(
 
     return {
       version: packageJsonObject.version,
-      deps: packageJsonObject.dependencies,
-      devDeps: packageJsonObject.devDependencies,
+      dependencies: packageJsonObject.dependencies,
+      devDependencies: packageJsonObject.devDependencies,
+      originalObj: packageJsonObject,
     };
   } catch {
-    return handleDepsRetrievalError();
-  }
-}
-function handleDepsRetrievalError(): never {
-  error('Failed to retrieve dependencies');
-  error("Looks like there isn't a package.json file in your project yet");
-  error('Please make sure to run this in the root directory of your project');
-  return process.exit(1);
-}
+    error('Failed to retrieve dependencies');
+    error("Looks like there isn't a package.json file in your project yet");
+    error('Please make sure to run this in the root directory of your project');
 
-export function determineAvailableToolsFromScaffyConfig(
-  scaffyConfig: ConfigSchema,
-  requestedToolNames: string[]
-): string[] {
-  const toolsInConfig = Object.keys(scaffyConfig);
-  return extractSubsetFromCollection<string>(requestedToolNames, toolsInConfig);
+    return process.exit(ExitCodes.GENERAL);
+  }
 }
 
 export async function isCommandAvailable(commandName: string): Promise<boolean> {
@@ -60,10 +52,14 @@ interface EntityRemovalOptions {
   force?: boolean;
   recursive?: boolean;
 }
+const defaultEntityRemovalOptions: EntityRemovalOptions = {
+  force: true,
+};
+
 export async function removeEntityAt(
   entityPath: string,
   entityName = '',
-  options: EntityRemovalOptions = { force: true }
+  options: EntityRemovalOptions = defaultEntityRemovalOptions
 ) {
   try {
     info(`Removing ${entityName}....`);
@@ -87,7 +83,7 @@ export async function doesPathExist(entityPath: string): Promise<boolean> {
 
 export function genericErrorHandler(
   msg: string,
-  displayHelp: boolean = true,
+  displayHelp = true,
   exitCode = ExitCodes.GENERAL
 ): never {
   error(msg);
@@ -103,4 +99,31 @@ export async function searchForFile(globPattern: string | string[]): Promise<str
 
 export function determineRootDirectory(): string {
   return path.resolve('./');
+}
+
+type DepProps = 'dependencies' | 'devDependencies';
+export async function updatePackageJsonDeps(
+  packageJsonPath: string,
+  propToUpdate: DepProps,
+  newInfo: Dependencies
+) {
+  const { originalObj } = await parseProjectDependencies(packageJsonPath);
+  const newPackageJSONObj = objSet(originalObj, propToUpdate, newInfo);
+  await rewriteExistingPackageJson(packageJsonPath, newPackageJSONObj);
+}
+
+async function rewriteExistingPackageJson(
+  packageJsonPath: string,
+  newPackageJsonData: SamplePackageJson
+) {
+  try {
+    info(`Rewriting ${packageJsonPath}...`);
+    await fsPromise.writeFile(packageJsonPath, JSON.stringify(newPackageJsonData));
+    return success(`${packageJsonPath} rewritten successfully`);
+  } catch (err) {
+    error('Failed to update package.json file');
+    error(`The following error occurred: ${err}`);
+
+    return process.exit(ExitCodes.GENERAL);
+  }
 }

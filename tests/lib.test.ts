@@ -7,18 +7,19 @@ import {
   ArrayValidator,
   ObjectValidator,
   StringValidator,
-  InterfaceToValidatorSchema,
   NumberValidator,
-} from '../src/lib/schema-validator';
+  InterfaceToValidatorSchema,
+} from '../src/lib/schema-validator/index';
 
 describe('Tests for schema validation library', () => {
   test('success when object matches schema', () => {
     // Arrange
-    interface SampleObject {
+    type SampleObject = {
       a: string;
       c: string;
       b: string[];
-    }
+    };
+
     const sampleObject: SampleObject = {
       a: faker.datatype.string(4),
       c: faker.datatype.string(4),
@@ -41,6 +42,7 @@ describe('Tests for schema validation library', () => {
     expect(validationResult.isValid).toBe(true);
     expect(validationResult.errors.length).toEqual(0);
   });
+
   test('error when object does not match schema', () => {
     // Arrange
     interface SampleObject {
@@ -112,10 +114,11 @@ describe('Tests for schema validation library', () => {
     });
 
     // Assert
+    expect(validationResult.value).toEqual(desiredOutputObj);
     expect(validationResult.isValid).toBe(true);
     expect(validationResult.errors.length).toEqual(0);
-    expect(validationResult.value).toEqual(desiredOutputObj);
   });
+
   test('That nothing is excluded if there are no schema violations', () => {
     // Arrange
     const sampleObject = {

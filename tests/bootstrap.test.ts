@@ -15,14 +15,14 @@ import {
   didAllPromisesSucceed,
 } from './helpers';
 
-const dataDir = `${testDataDir}/for-bootstrap-cmd`;
+const testingDir = `${testDataDir}/for-bootstrap-cmd`;
 const pathToScaffyConfig = `./sample.scaffy.json`;
 
 let toolNamesInConfig: string[];
 let sampleScaffyConfig: ConfigSchema;
 
 beforeAll(async () => {
-  process.chdir(dataDir);
+  process.chdir(testingDir);
   sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
   toolNamesInConfig = Object.keys(sampleScaffyConfig);
 });
@@ -45,8 +45,8 @@ async function computeToolBootstrapResults(
   const projectDependencies = await parseProjectDependencies(`./package.json`);
 
   const allPackageJsonDeps = [
-    ...Object.keys(projectDependencies.deps),
-    ...Object.keys(projectDependencies.devDeps),
+    ...Object.keys(projectDependencies.dependencies),
+    ...Object.keys(projectDependencies.devDependencies),
   ];
 
   const { deps, devDeps, remoteConfigurations, localConfigurations } = toolConfigObj;
@@ -136,7 +136,8 @@ test.each(testCases)(
     );
 
     expect(allBootstrapAttemptsWereSuccessful).toBe(true);
-  }
+  },
+  90000
 );
 
 test('That bootstrap command errors if tools specified as args are not present in scaffy config', async () => {
