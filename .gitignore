@@ -102,4 +102,9 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Others
 tests/test-data/*
+
+src/lib/*
+!src/lib/schema-validator/
