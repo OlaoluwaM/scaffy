@@ -1,7 +1,7 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
-  testTimeout: 500000,
+  testTimeout: 10000,
   testEnvironment: 'node',
   verbose: true,
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],

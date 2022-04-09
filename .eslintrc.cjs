@@ -61,5 +61,10 @@ module.exports = {
 
     'no-redeclare': 'off',
     '@typescript-eslint/no-redeclare': ['error'],
+
+    'lines-between-class-members': 'off',
+    'class-methods-use-this': 'off',
+
+    'consistent-return': 'warn',
   },
 };
