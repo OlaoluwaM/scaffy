@@ -3,7 +3,7 @@ import outputHelp from '../cmds/help';
 import outPutCliVersion from '../cmds/version';
 
 import { info } from '../utils';
-import { ExitCodes } from '../compiler/types';
+import { ExitCodes } from '../constants';
 import { genericErrorHandler } from './helpers';
 import { ParsedArguments, cliApiObj } from './parseArgs';
 

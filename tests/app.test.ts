@@ -2,10 +2,11 @@ import path from 'path';
 import prompt from 'prompts';
 import download from '../src/app/downloadFile';
 
+import { ExitCodes } from '../src/constants';
 import { testDataDir } from './test-setup';
+import { ConfigEntry } from '../src/compiler/types';
 import { fs as fsExtra } from 'zx';
 import { ObjectValidator } from '../src/lib/schema-validator';
-import { ConfigEntry, ExitCodes } from '../src/compiler/types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';

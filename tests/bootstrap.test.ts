@@ -2,18 +2,14 @@
 import bootstrap from '../src/cmds/bootstrap';
 import parseScaffyConfig from '../src/app/parseConfig';
 
+import { ExitCodes } from '../src/constants';
 import { testDataDir } from './test-setup';
 import { parseProjectDependencies } from '../src/app/helpers';
+import { ConfigEntry, ConfigSchema } from '../src/compiler/types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect, beforeAll, jest } from '@jest/globals';
-import { ConfigEntry, ConfigSchema, ExitCodes } from '../src/compiler/types';
-import { isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
-import {
-  srcUtils,
-  doAllFilesExist,
-  isSuccessfulPromise,
-  didAllPromisesSucceed,
-} from './helpers';
+import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
+import { extractBasenameFromPath, isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
 
 const testingDir = `${testDataDir}/for-bootstrap-cmd`;
 const pathToScaffyConfig = `./sample.scaffy.json`;
@@ -53,7 +49,7 @@ async function computeToolBootstrapResults(
     toolConfigObj;
   const allToolDeps = [...depNames, ...devDepNames];
   const allToolConfigs = [...localConfigurationPaths, ...remoteConfigurationUrls].map(
-    srcUtils.extractBasenameFromPath
+    extractBasenameFromPath
   );
 
   const installationResults: ToolBootstrapResult = {

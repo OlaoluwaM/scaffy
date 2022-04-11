@@ -5,6 +5,11 @@ const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
 
 export const SCAFFY_CONFIG_GLOB = '**/*scaffy.json';
-
 export const ERROR_HOOK = 'Error Occurred' as const;
+
 export type ErrorHook = typeof ERROR_HOOK;
+export enum ExitCodes {
+  OK = 0,
+  GENERAL = 1,
+  COMMAND_NOT_FOUND = 127,
+}

@@ -1,6 +1,7 @@
+import { ExitCodes } from '../constants';
 import { fs as fsExtra } from 'zx';
 import { error, isEmpty, rawTypeOf, valueIs } from '../utils';
-import { AnyObject, ConfigEntry, ConfigSchema, ExitCodes } from '../compiler/types';
+import { AnyObject, ConfigEntry, ConfigSchema } from '../compiler/types';
 import {
   ArrayValidator,
   StringValidator,
