@@ -1,10 +1,5 @@
-import * as SrcUtils from '../src/utils';
-import * as AppHelpers from '../src/app/helpers';
-
 import { doesPathExist } from '../src/app/helpers';
-
-export const srcUtils = SrcUtils;
-export const appHelpers = AppHelpers;
+import { extractBasenameFromPath, addException } from '../src/utils';
 
 export function didAllPromisesSucceed(
   promises: Awaited<ReturnType<typeof Promise.allSettled>>
@@ -23,9 +18,9 @@ export async function doAllFilesExist(
   destinationDir: string
 ): Promise<PromiseSettledResult<boolean>[]> {
   return Promise.allSettled(
-    filePathArr.map(srcUtils.extractBasenameFromPath).map(filename => {
+    filePathArr.map(extractBasenameFromPath).map(filename => {
       const intendedPath = `${destinationDir}/${filename}`;
-      const doesPathExistWithErr = srcUtils.addException<string[], Promise<boolean>>(
+      const doesPathExistWithErr = addException<string[], Promise<boolean>>(
         doesPathExist
       );
       return doesPathExistWithErr(intendedPath);

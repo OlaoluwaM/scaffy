@@ -53,12 +53,12 @@ EOL
 cat <<EOL >"${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
 {
   "eslint": {
-  "deps": ["eslint-plugin-react"],
-  "devDeps": ["eslint"],
-  "remoteConfigurations": [
+  "depNames": ["eslint-plugin-react"],
+  "devDepNames": ["eslint"],
+  "remoteConfigurationUrls": [
   "https://raw.githubusercontent.com/OlaoluwaM/configs/main/postcss.config.js"
   ],
-  "localConfigurations": ["../local-configs/stub.js"]
+  "localConfigurationPaths": ["../local-configs/stub.js"]
   }
 }
 EOL

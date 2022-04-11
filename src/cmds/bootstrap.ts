@@ -5,6 +5,7 @@ import parseScaffyConfig from '../app/parseConfig';
 import { $ } from 'zx';
 import { ConfigEntry, ConfigSchema, Dependencies } from '../compiler/types';
 import {
+  DepProps,
   genericErrorHandler,
   updatePackageJsonDeps,
   determineRootDirectory,
@@ -29,15 +30,18 @@ export default async function bootstrap(
     scaffyConfObj
   );
 
-  if (isEmpty.array(toolsInScaffyConfig)) {
-    genericErrorHandler(
-      'Seems like non of those tools were specified in your scaffy config',
-      false
-    );
-  }
+  exitIfThereAreNoToolsToBootstrap(toolsInScaffyConfig);
 
   await installAllToolDeps(toolsInScaffyConfig, scaffyConfObj);
   await retrieveToolConfigurations(scaffyConfObj, toolsInScaffyConfig);
+}
+
+function exitIfThereAreNoToolsToBootstrap(toolsInScaffyConfig: string[]) {
+  if (!isEmpty.array(toolsInScaffyConfig)) return;
+  genericErrorHandler(
+    'Seems like non of those tools were specified in your scaffy config',
+    false
+  );
 }
 
 function filterToolsAvailableInScaffyConfig(
@@ -49,8 +53,8 @@ function filterToolsAvailableInScaffyConfig(
 }
 
 interface DepsMap {
-  deps: string[];
-  devDeps: string[];
+  depNames: string[];
+  devDepNames: string[];
 }
 
 async function installAllToolDeps(
@@ -66,98 +70,114 @@ async function installAllToolDeps(
   const aggregateDependenciesToBeInstalled = aggregateDepTypeForDesiredTools(
     toolsToBootStrap,
     scaffyConfObj,
-    'deps'
+    'depNames'
   );
 
   const aggregateDevDependenciesToBeInstalled = aggregateDepTypeForDesiredTools(
     toolsToBootStrap,
     scaffyConfObj,
-    'devDeps'
+    'devDepNames'
   );
 
   const depsMap: DepsMap = {
-    deps: aggregateDependenciesToBeInstalled,
-    devDeps: aggregateDevDependenciesToBeInstalled,
+    depNames: aggregateDependenciesToBeInstalled,
+    devDepNames: aggregateDevDependenciesToBeInstalled,
   };
 
-  await mockToolInstallationIfNecessary(depsMap);
+  await performDepsInstallation(depsMap);
 }
 
-type DependencyTypes = Extract<keyof ConfigEntry, 'deps' | 'devDeps'>;
-
-function aggregateDepTypeForDesiredTools<DependencyType extends DependencyTypes>(
+type DependencyTypes = Extract<keyof ConfigEntry, 'depNames' | 'devDepNames'>;
+function aggregateDepTypeForDesiredTools(
   tools: string[],
   scaffyConfObj: ConfigSchema,
-  dependencyTypeToAggregate: DependencyType
+  dependencyTypeToAggregate: DependencyTypes
 ) {
-  type ResultingDepArr = ConfigSchema[string][DependencyType];
-
   const aggregateDeps = tools.flatMap(toolName => {
     const toolNameConfigEntry = scaffyConfObj[toolName];
     const targetDependencies = toolNameConfigEntry[dependencyTypeToAggregate];
     return targetDependencies;
   });
 
-  return aggregateDeps as ResultingDepArr;
-}
-
-async function mockToolInstallationIfNecessary(depsMap: DepsMap) {
-  const { IS_TEST = false } = process.env;
-
-  if (!IS_TEST) {
-    await performDepsInstallation(depsMap);
-  } else {
-    await performMockDepsInstallation(depsMap);
-  }
+  return aggregateDeps;
 }
 
 async function performDepsInstallation(depsMap: DepsMap, installFlags: string[] = []) {
-  const { deps, devDeps } = depsMap;
+  const { depsInstallFunc, devDepsInstallFunc } = provideMockInstallFunctionsIfNecessary(
+    depsMap,
+    installFlags
+  );
 
-  const DEV_DEP_INSTALL_FLAG = '-D' as const;
-  const devDepFlags = installFlags.concat(DEV_DEP_INSTALL_FLAG);
-
-  // NOTE: This is done sequentially because npm installs cannot be executed in parallel
-  try {
-    await installDependencies(deps, installFlags);
-  } catch (err) {
-    error(`Error occurred installing dependencies \n${err}.\nSkipping...`);
-  }
-
-  try {
-    await installDependencies(devDeps, devDepFlags);
-  } catch (err) {
-    return error(`Error occurred installing dev dependencies \n${err}.\nSkipping...`);
-  }
+  const installFuncForAllDeps = installationTemplate(depsInstallFunc, devDepsInstallFunc);
+  await installFuncForAllDeps();
 
   return success('Dependencies and DevDependencies installed!');
 }
 
-async function performMockDepsInstallation(depsMap: DepsMap) {
-  const PACKAGE_JSON_PATH = resolveFilePath('package.json', '.');
-  const { deps, devDeps } = depsMap;
-
-  try {
-    const depsObj = await generateDependencyObj(deps);
-    await updatePackageJsonDeps(PACKAGE_JSON_PATH, 'dependencies', depsObj);
-  } catch (err) {
-    error(`Error occurred installing dependencies \n${err}.\nSkipping...`);
-  }
-
-  try {
-    const devDepsObj = await generateDependencyObj(devDeps);
-    await updatePackageJsonDeps(PACKAGE_JSON_PATH, 'devDependencies', devDepsObj);
-  } catch (err) {
-    error(`Error occurred installing dev dependencies \n${err}.\nSkipping...`);
-  }
+type InstallationFn = () => Promise<void>;
+interface InstallationFunctionMap {
+  depsInstallFunc: InstallationFn;
+  devDepsInstallFunc: InstallationFn;
 }
 
-async function generateDependencyObj(deps: string[]): Promise<Dependencies> {
-  const dependencySearchPromises = deps.map(doesPkgExistInNPMRegistry);
+function provideMockInstallFunctionsIfNecessary(
+  depsMap: DepsMap,
+  installFlags: string[]
+): InstallationFunctionMap {
+  const { IS_TEST } = process.env;
+  const { depNames, devDepNames } = depsMap;
+
+  const DEV_DEP_INSTALL_FLAG = '-D' as const;
+  const devDepFlags = installFlags.concat(DEV_DEP_INSTALL_FLAG);
+
+  let depsInstallFunc;
+  let devDepsInstallFunc;
+
+  if (IS_TEST) {
+    depsInstallFunc = mockDepsInstallation.bind(null, depNames, 'dependencies');
+    devDepsInstallFunc = mockDepsInstallation.bind(null, devDepNames, 'devDependencies');
+  } else {
+    depsInstallFunc = installDependencies.bind(null, depNames, installFlags);
+    devDepsInstallFunc = installDependencies.bind(null, devDepNames, devDepFlags);
+  }
+
+  return { depsInstallFunc, devDepsInstallFunc };
+}
+
+function installationTemplate(
+  depsInstallationCB: InstallationFn,
+  devDepsInstallationCB: InstallationFn
+) {
+  return async () => {
+    // NOTE: This is done sequentially because npm installs cannot be executed in parallel
+
+    try {
+      await depsInstallationCB();
+    } catch (err) {
+      error(`Error occurred installing dependencies \n${err}.\nSkipping...`);
+    }
+
+    try {
+      await devDepsInstallationCB();
+    } catch (err) {
+      return error(`Error occurred installing dev dependencies \n${err}.\nSkipping...`);
+    }
+  };
+}
+
+async function mockDepsInstallation(depNames: string[], depType: DepProps) {
+  const depObj = await generateDependencyObj(depNames);
+  const PACKAGE_JSON_PATH = resolveFilePath('package.json', '.');
+
+  await updatePackageJsonDeps(PACKAGE_JSON_PATH, depType, depObj);
+}
+
+async function generateDependencyObj(depNames: string[]): Promise<Dependencies> {
+  const dependencySearchPromises = depNames.map(doesPkgExistInNPMRegistry);
   const results = await Promise.all(dependencySearchPromises);
 
   const dependenciesThatExistInRegistry = results
-    .map((doesPkgExist, ind) => (doesPkgExist ? deps[ind] : false))
+    .map((doesPkgExist, ind) => (doesPkgExist ? depNames[ind] : false))
     .filter(Boolean) as string[];
 
   const depObj = toDepObj(dependenciesThatExistInRegistry);
@@ -188,11 +208,9 @@ function toDepObj(depsArr: string[]): Dependencies {
   return depObj;
 }
 
-async function installDependencies(deps: string[], npmInstallFlags: string[] = []) {
-  if (isEmpty.array(deps)) return error(`No dependencies to install. Skipping...`);
-
-  const outputData = await $`npm i ${npmInstallFlags} ${deps}`;
-  return outputData;
+async function installDependencies(depNames: string[], npmInstallFlags: string[] = []) {
+  if (isEmpty.array(depNames)) return error(`No dependencies to install. Skipping...`);
+  await $`npm i ${npmInstallFlags} ${depNames}`;
 }
 
 async function retrieveToolConfigurations(scaffyConfObj: ConfigSchema, tools: string[]) {
@@ -210,28 +228,31 @@ async function retrieveIndividualConfigs(toolName: string, toolConfObj: ConfigEn
   const projectRootDir = determineRootDirectory();
 
   const { toolConfigs } = extractScaffyConfigSections(toolConfObj);
-  const { remoteConfigurations, localConfigurations } = toolConfigs;
+  const { remoteConfigurationUrls, localConfigurationPaths } = toolConfigs;
 
   const installationResults = Promise.allSettled([
-    download(remoteConfigurations, projectRootDir),
-    copyFiles(localConfigurations, projectRootDir),
+    download(remoteConfigurationUrls, projectRootDir),
+    copyFiles(localConfigurationPaths, projectRootDir),
   ]);
 
   return installationResults;
 }
 
-type ToolConfigs = Pick<ConfigEntry, 'localConfigurations' | 'remoteConfigurations'>;
-type ToolDeps = Pick<ConfigEntry, 'deps' | 'devDeps'>;
+type ToolConfigs = Pick<
+  ConfigEntry,
+  'localConfigurationPaths' | 'remoteConfigurationUrls'
+>;
+type ToolDeps = Pick<ConfigEntry, 'depNames' | 'devDepNames'>;
 
 function extractScaffyConfigSections(toolConfObj: ConfigEntry): {
   toolConfigs: ToolConfigs;
   toolDeps: ToolDeps;
 } {
   const toolConfigs = pickObjPropsToAnotherObj(toolConfObj, [
-    'localConfigurations',
-    'remoteConfigurations',
+    'localConfigurationPaths',
+    'remoteConfigurationUrls',
   ]);
-  const toolDeps = pickObjPropsToAnotherObj(toolConfObj, ['deps', 'devDeps']);
+  const toolDeps = pickObjPropsToAnotherObj(toolConfObj, ['depNames', 'devDepNames']);
   return { toolConfigs, toolDeps };
 }
 

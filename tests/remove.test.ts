@@ -11,7 +11,7 @@ import { doesPathExist, parseProjectDependencies } from '../src/app/helpers';
 const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
 const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
 
-test.skip('Should make sure un-installation command removes deps and downloads files as required', async () => {
+test.skip('Should make sure un-installation command removes depNames and downloads files as required', async () => {
   // Arrange
   const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
 
@@ -25,18 +25,20 @@ test.skip('Should make sure un-installation command removes deps and downloads f
     pathToSampleProjectDir
   );
   const samplePackageJsonDeps = Object.keys(sampleProjectDirPackageJSONObj.dependencies);
-  const samplePackageJsonDevDeps = Object.keys(sampleProjectDirPackageJSONObj.devDependencies);
+  const samplePackageJsonDevDeps = Object.keys(
+    sampleProjectDirPackageJSONObj.devDependencies
+  );
 
   const sampleProjectDepsDoNotContainsScaffyDeps = [
-    !isSubset(samplePackageJsonDeps, toolToSetup.deps),
-    !isSubset(samplePackageJsonDevDeps, toolToSetup.devDeps),
+    !isSubset(samplePackageJsonDeps, toolToSetup.depNames),
+    !isSubset(samplePackageJsonDevDeps, toolToSetup.devDepNames),
   ];
 
   const remoteConfigsWereDeleted = !(await doesPathExist(
-    `${pathToSampleProjectDir}/${path.basename(toolToSetup.remoteConfigurations[0])}`
+    `${pathToSampleProjectDir}/${path.basename(toolToSetup.remoteConfigurationUrls[0])}`
   ));
   const localFilesWereRemoved = !(await doesPathExist(
-    `${pathToSampleProjectDir}/${path.basename(toolToSetup.localConfigurations[0])}`
+    `${pathToSampleProjectDir}/${path.basename(toolToSetup.localConfigurationPaths[0])}`
   ));
 
   // Assert

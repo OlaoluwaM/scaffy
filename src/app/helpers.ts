@@ -2,9 +2,10 @@ import path from 'path';
 import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
+import { ExitCodes } from '../constants';
+import { Dependencies } from '../compiler/types';
 import { fs, $, globby } from 'zx';
-import { ExitCodes, ConfigSchema, Dependencies } from '../compiler/types';
-import { error, info, success, extractSubsetFromCollection, objSet } from '../utils';
+import { error, info, success, objSet } from '../utils';
 
 interface SamplePackageJson {
   readonly version: string;
@@ -101,7 +102,7 @@ export function determineRootDirectory(): string {
   return path.resolve('./');
 }
 
-type DepProps = 'dependencies' | 'devDependencies';
+export type DepProps = 'dependencies' | 'devDependencies';
 export async function updatePackageJsonDeps(
   packageJsonPath: string,
   propToUpdate: DepProps,

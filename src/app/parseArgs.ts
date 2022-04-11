@@ -1,8 +1,8 @@
 import path from 'path';
 import prompts from 'prompts';
 
-import { SCAFFY_CONFIG_GLOB } from '../constants';
-import { EnumKeys, ExitCodes } from '../compiler/types';
+import { EnumKeys } from '../compiler/types';
+import { SCAFFY_CONFIG_GLOB, ExitCodes } from '../constants';
 import { genericErrorHandler, searchForFile } from './helpers';
 import {
   pipe,
