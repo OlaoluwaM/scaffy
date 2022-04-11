@@ -1,9 +1,9 @@
 export interface ConfigSchema {
   readonly [toolName: string]: {
-    readonly deps: string[];
-    readonly devDeps: string[];
-    readonly remoteConfigurations: string[];
-    readonly localConfigurations: string[];
+    readonly depNames: string[];
+    readonly devDepNames: string[];
+    readonly remoteConfigurationUrls: string[];
+    readonly localConfigurationPaths: string[];
   };
 }
 

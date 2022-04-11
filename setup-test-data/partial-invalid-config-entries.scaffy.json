@@ -1,30 +1,30 @@
 {
   "tailwind": {
-    "deps": "111",
-    "remoteConfigurations": [
+    "depNames": "111",
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/postcss.config.js"
     ],
-    "localConfigurations": 1234
+    "localConfigurationPaths": 1234
   },
 
   "orange": {
-    "deps": ["jest", "cypress"],
-    "localConfigurations": [
+    "depNames": ["jest", "cypress"],
+    "localConfigurationPaths": [
       "../local-configs/hello.rs",
       "../local-configs/another-file.ts"
     ],
-    "remoteConfigurations": {}
+    "remoteConfigurationUrls": {}
   },
 
   "jest": {
-    "deps": 123
+    "depNames": 123
   },
 
   "ang": {},
 
   "bad": {
-    "deps": [1, 2, 3],
-    "localConfigurations": "Opp"
+    "depNames": [1, 2, 3],
+    "localConfigurationPaths": "Opp"
   },
 
   "1": 222,

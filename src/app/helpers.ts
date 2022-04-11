@@ -101,7 +101,7 @@ export function determineRootDirectory(): string {
   return path.resolve('./');
 }
 
-type DepProps = 'dependencies' | 'devDependencies';
+export type DepProps = 'dependencies' | 'devDependencies';
 export async function updatePackageJsonDeps(
   packageJsonPath: string,
   propToUpdate: DepProps,

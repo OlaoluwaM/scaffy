@@ -1,31 +1,31 @@
 {
   "eslint": {
-    "deps": ["eslint-plugin-react", "sss", "j"],
-    "devDeps": ["eslint", "jest", "zod"],
-    "remoteConfigurations": [
+    "depNames": ["eslint-plugin-react", "sss", "j"],
+    "devDepNames": ["eslint", "jest", "zod"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
     ],
-    "localConfigurations": ["../local-configs/.prettierrc"]
+    "localConfigurationPaths": ["../local-configs/.prettierrc"]
   },
 
   "react": {
-    "deps": ["react", "styled-components", "framer-motion"],
-    "devDeps": ["typescript", "react-dom", "react-hot-toast"],
-    "remoteConfigurations": [
+    "depNames": ["react", "styled-components", "framer-motion"],
+    "devDepNames": ["typescript", "react-dom", "react-hot-toast"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js",
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/.babelrc.js"
     ],
-    "localConfigurations": ["../local-configs/main.rs", "../local-configs/sample.ts"]
+    "localConfigurationPaths": ["../local-configs/main.rs", "../local-configs/sample.ts"]
   },
 
   "webpack": {
-    "deps": ["webpack-dev-server", "sequelize"],
-    "devDeps": ["webpack", "crossenv"],
-    "remoteConfigurations": [
+    "depNames": ["webpack-dev-server", "sequelize"],
+    "devDepNames": ["webpack", "crossenv"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
     ],
-    "localConfigurations": [
+    "localConfigurationPaths": [
       "../local-configs/hello.rs",
       "../local-configs/another-file.ts",
       "../local-configs/some.js"

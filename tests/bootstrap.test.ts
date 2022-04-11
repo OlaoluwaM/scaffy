@@ -49,9 +49,10 @@ async function computeToolBootstrapResults(
     ...Object.keys(projectDependencies.devDependencies),
   ];
 
-  const { deps, devDeps, remoteConfigurations, localConfigurations } = toolConfigObj;
-  const allToolDeps = [...deps, ...devDeps];
-  const allToolConfigs = [...localConfigurations, ...remoteConfigurations].map(
+  const { depNames, devDepNames, remoteConfigurationUrls, localConfigurationPaths } =
+    toolConfigObj;
+  const allToolDeps = [...depNames, ...devDepNames];
+  const allToolConfigs = [...localConfigurationPaths, ...remoteConfigurationUrls].map(
     srcUtils.extractBasenameFromPath
   );
 
@@ -88,7 +89,7 @@ function bootstrapWasSuccessful(bootstrapResults: ToolBootstrapResult): boolean 
   return installationStatuses.every(bool => bool === true);
 }
 
-test('Should make sure bootstrap command installs deps and retrieves files as required for a single tool scaffolding (bootstrapping)', async () => {
+test('Should make sure bootstrap command installs depNames and retrieves files as required for a single tool scaffolding (bootstrapping)', async () => {
   // Arrange
   const sampleToolsArg = [toolNamesInConfig[0], 'sfsfsd', 'svwrefrw', 'fewfwe'];
   const testSubjectToolCOnfig = sampleScaffyConfig[sampleToolsArg[0]] as ConfigEntry;
