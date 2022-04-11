@@ -5,7 +5,7 @@ import { isCommandAvailable, removeEntityAt } from './helpers';
 import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
 const { IS_TEST = false } = process.env;
-const MAX_TIMEOUT_FOR_DOWNLOAD = IS_TEST ? 15 : 300;
+const MAX_TIMEOUT_FOR_DOWNLOAD = IS_TEST ? 5 : 300;
 
 enum CurlOrWget {
   Curl = 'curl',
