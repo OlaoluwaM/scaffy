@@ -6,7 +6,7 @@ import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
 const { IS_TEST = false } = process.env;
 const MAX_TIMEOUT_FOR_DOWNLOAD = IS_TEST ? 5 : 300;
-const MAX_RETRIES_FOR_DOWNLOAD = IS_TEST ? 3 : 20;
+const MAX_RETRIES_FOR_DOWNLOAD = IS_TEST ? 1 : 20;
 
 enum CurlOrWget {
   Curl = 'curl',

@@ -3,22 +3,27 @@ import bootstrap from '../src/cmds/bootstrap';
 import parseScaffyConfig from '../src/app/parseConfig';
 
 import { ExitCodes } from '../src/constants';
-import { testDataDir } from './test-setup';
 import { parseProjectDependencies } from '../src/app/helpers';
 import { ConfigEntry, ConfigSchema } from '../src/compiler/types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect, beforeAll, jest } from '@jest/globals';
 import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
-import { extractBasenameFromPath, isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
+import {
+  isEmpty,
+  isSubset,
+  extractBasenameFromPath,
+  pickObjPropsToAnotherObj,
+} from '../src/utils';
 
-const testingDir = `${testDataDir}/for-bootstrap-cmd`;
 const pathToScaffyConfig = `./sample.scaffy.json`;
 
 let toolNamesInConfig: string[];
 let sampleScaffyConfig: ConfigSchema;
 
 beforeAll(async () => {
+  const testingDir = `./for-bootstrap-cmd`;
   process.chdir(testingDir);
+
   sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
   toolNamesInConfig = Object.keys(sampleScaffyConfig);
 });
