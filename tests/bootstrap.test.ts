@@ -21,6 +21,7 @@ let toolNamesInConfig: string[];
 let sampleScaffyConfig: ConfigSchema;
 
 beforeAll(async () => {
+  console.log({ t: process.cwd() });
   const testingDir = `./for-bootstrap-cmd`;
   process.chdir(testingDir);
 

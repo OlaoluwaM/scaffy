@@ -1,14 +1,21 @@
 import path from 'path';
-import { $ } from 'zx';
 
+import { $ } from 'zx';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { beforeAll } from '@jest/globals';
+import { fileURLToPath } from 'url';
 
 $.verbose = true;
 process.env.IS_TEST = 'true';
 
-const testDataDir = path.resolve('tests', './test-data/');
+// eslint-disable-next-line camelcase
+const __test_filename = fileURLToPath(import.meta.url);
+// eslint-disable-next-line camelcase
+const __test_dirname = path.dirname(__test_filename);
+
+const testDataDir = path.join(__test_dirname, './test-data/');
 
 beforeAll(() => {
+  console.log({ testDataDir });
   process.chdir(testDataDir);
 });
