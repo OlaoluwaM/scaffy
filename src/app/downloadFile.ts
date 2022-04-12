@@ -61,6 +61,9 @@ async function downloadWithCurl(urls: string[], destinationDir = '.') {
         (processErr as ProcessOutput).stderr
       }`
     );
+
+    info('Retrying download with wget...');
+    await downloadWithWget(urls, destinationDir);
   }
 }
 
