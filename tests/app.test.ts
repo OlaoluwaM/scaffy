@@ -3,7 +3,6 @@ import prompt from 'prompts';
 import download from '../src/app/downloadFile';
 
 import { ExitCodes } from '../src/constants';
-import { testDataDir } from './test-setup';
 import { ConfigEntry } from '../src/compiler/types';
 import { fs as fsExtra } from 'zx';
 import { ObjectValidator } from '../src/lib/schema-validator';
@@ -38,10 +37,7 @@ describe('Tests for CLI arguments parsing', () => {
       {
         command: 'rm',
         tools: ['react', '@babel/core', 'typescript'],
-        pathToScaffyConfig: path.relative(
-          './',
-          `${testDataDir}/local-configs/test.scaffy.json`
-        ),
+        pathToScaffyConfig: path.relative('./', `./local-configs/test.scaffy.json`),
       },
     ],
     [
@@ -185,7 +181,7 @@ describe('Tests for downloading remote configuration', () => {
   ];
 
   const SUB_TEST_DIR_FOR_TEST = 'for-remote-downloads' as const;
-  const destinationDir = `${testDataDir}/${SUB_TEST_DIR_FOR_TEST}`;
+  const destinationDir = `./${SUB_TEST_DIR_FOR_TEST}`;
 
   beforeEach(async () => {
     await fsExtra.emptyDir(destinationDir);
@@ -207,7 +203,6 @@ describe('Tests for downloading remote configuration', () => {
     }
   );
 
-  // TODO: fails on initial run
   test.each([['curl'], ['wget'], ['no specified command']])(
     'Should make sure that remote configs can be downloaded even if some cannot be downloaded using %s',
     async curlOrWget => {
@@ -224,7 +219,7 @@ describe('Tests for downloading remote configuration', () => {
         destinationDir
       );
 
-      const successfulPromises = isSuccessfulPromise
+      const successfulPromises = isSuccessfulPromise;
       const numberOfRemoteConfigsDownload =
         remoteConfigsDownloadStatuses.filter(successfulPromises).length;
 
@@ -235,7 +230,7 @@ describe('Tests for downloading remote configuration', () => {
 });
 
 describe('Tests for scaffy schema parsing', () => {
-  const configDir = `${testDataDir}/other-data`;
+  const configDir = `./other-data`;
 
   test('That parser succeeds with valid config file ', async () => {
     // Arrange

@@ -15,11 +15,11 @@
     "postbuild": "ts-import-patch ./dist",
     "test:setup": "./setup-test-data/setup.sh",
     "test": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:ci": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules CI=true jest",
     "test:coverage": "npm run test -- --coverage",
     "test:silent": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --silent",
     "test:single": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --testPathPattern --",
-    "test:single:silent": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --silent --testPathPattern --",
-    "prepare": "husky install"
+    "test:single:silent": "npm run test:setup && NODE_OPTIONS=--experimental-vm-modules jest --silent --testPathPattern --"
   },
   "keywords": [],
   "author": "Olaoluwa Mustapha <jomeemustapha@gmail.com>",
@@ -38,7 +38,6 @@
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-jest": "^26.1.1",
-    "husky": "^7.0.4",
     "jest": "^27.5.1",
     "prettier": "^2.5.1",
     "ts-import-patch": "github:OlaoluwaM/ts-import-patch#main",

@@ -6,6 +6,7 @@ import { error, info, isEmpty, success, toMultiLineString } from '../utils';
 
 const { IS_TEST = false } = process.env;
 const MAX_TIMEOUT_FOR_DOWNLOAD = IS_TEST ? 5 : 300;
+const MAX_RETRIES_FOR_DOWNLOAD = IS_TEST ? 1 : 20;
 
 enum CurlOrWget {
   Curl = 'curl',
@@ -61,6 +62,9 @@ async function downloadWithCurl(urls: string[], destinationDir = '.') {
         (processErr as ProcessOutput).stderr
       }`
     );
+
+    info('Retrying download with wget...');
+    await downloadWithWget(urls, destinationDir);
   }
 }
 
@@ -74,7 +78,7 @@ async function downloadWithWget(urls: string[], destinationDir = '.'): Promise<v
   );
 
   try {
-    await $`wget -T ${MAX_TIMEOUT_FOR_DOWNLOAD} -i ${WGET_URL_LIST_FILE_PATH} -P ${destinationDir} 1>/dev/null`;
+    await $`wget --tries=${MAX_RETRIES_FOR_DOWNLOAD} -T ${MAX_TIMEOUT_FOR_DOWNLOAD} -i ${WGET_URL_LIST_FILE_PATH} -P ${destinationDir} 1>/dev/null`;
   } catch (processError) {
     error(`Error Downloading with wget: ${(processError as ProcessOutput).stderr}\n`);
   } finally {
