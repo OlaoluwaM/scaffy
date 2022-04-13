@@ -3,19 +3,15 @@ import path from 'path';
 import { $ } from 'zx';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { beforeAll } from '@jest/globals';
-import { fileURLToPath } from 'url';
+import { getAbsolutePathsForFile } from '../src/constants';
 
-$.verbose = true;
+$.verbose = !!process.env.CI;
 process.env.IS_TEST = 'true';
 
 // eslint-disable-next-line camelcase
-const __test_filename = fileURLToPath(import.meta.url);
-// eslint-disable-next-line camelcase
-const __test_dirname = path.dirname(__test_filename);
-
+const { __dirname: __test_dirname } = getAbsolutePathsForFile(import.meta.url);
 const testDataDir = path.join(__test_dirname, './test-data/');
 
 beforeAll(() => {
-  console.log({ testDataDir });
   process.chdir(testDataDir);
 });
