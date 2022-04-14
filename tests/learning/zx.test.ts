@@ -1,9 +1,12 @@
-import path from 'path';
-
-import { appHelpers } from '../helpers';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { test, expect } from '@jest/globals';
+import { doesPathExist } from '../../src/app/helpers';
 import { $, ProcessOutput } from 'zx';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { test, expect, beforeAll } from '@jest/globals';
+
+beforeAll(() => {
+  const LEARNING_TESTS_DATA_DIR = './for-learning';
+  process.chdir(LEARNING_TESTS_DATA_DIR);
+});
 
 async function commandWithDynamicFlags(flags: string[] = []): Promise<ProcessOutput> {
   // Using `ls` here because it does not error out when called with no args or flags
@@ -19,18 +22,10 @@ test.each([
 });
 
 test('Should check how files are deleted in zx', async () => {
-  // Arrange
-  const testDir = path.resolve('tests', './test-data/for-learning/');
-
   // Act
-  await $`touch ${testDir}/example.txt`;
+  await $`touch ./example.txt`;
+  await $`rm ./example.txt`;
 
   // Assert
-  expect(await appHelpers.doesPathExist(`${testDir}/example.txt`)).toBe(true);
-
-  // Act
-  await $`rm -rf ${testDir}/*`;
-
-  // Assert
-  expect(await appHelpers.doesPathExist(`${testDir}/example.txt`)).toBe(false);
+  expect(await doesPathExist(`./example.txt`)).toBe(false);
 });

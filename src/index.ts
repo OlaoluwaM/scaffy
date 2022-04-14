@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import cli from './app/cli';
 
 import { $ } from 'zx';

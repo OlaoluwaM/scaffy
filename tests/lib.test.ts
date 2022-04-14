@@ -1,8 +1,8 @@
 import faker from '@faker-js/faker/locale/en';
 
-import { srcUtils } from './helpers';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect, describe } from '@jest/globals';
+import { pickObjPropsToAnotherObj, valueIs } from '../src/utils';
 import {
   ArrayValidator,
   ObjectValidator,
@@ -23,7 +23,7 @@ describe('Tests for schema validation library', () => {
     const sampleObject: SampleObject = {
       a: faker.datatype.string(4),
       c: faker.datatype.string(4),
-      b: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      b: faker.datatype.array().filter(valueIs.aString),
     };
 
     const schema: InterfaceToValidatorSchema<SampleObject> = {
@@ -51,8 +51,8 @@ describe('Tests for schema validation library', () => {
     }
 
     const sampleObject: SampleObject = {
-      c: faker.datatype.array().filter(srcUtils.valueIs.aString),
-      b: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      c: faker.datatype.array().filter(valueIs.aString),
+      b: faker.datatype.array().filter(valueIs.aString),
     };
 
     const schema = {
@@ -92,12 +92,12 @@ describe('Tests for schema validation library', () => {
     const sampleObject = {
       a: faker.datatype.string(4),
       c: faker.datatype.number(4),
-      b: faker.datatype.array().filter(srcUtils.valueIs.aNumber),
-      e: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      b: faker.datatype.array().filter(valueIs.aNumber),
+      e: faker.datatype.array().filter(valueIs.aString),
       f: faker.datatype.number(10),
     };
 
-    const desiredOutputObj = srcUtils.pickObjPropsToAnotherObj(sampleObject, ['a', 'e']);
+    const desiredOutputObj = pickObjPropsToAnotherObj(sampleObject, ['a', 'e']);
 
     const schema = {
       a: StringValidator(),
@@ -124,8 +124,8 @@ describe('Tests for schema validation library', () => {
     const sampleObject = {
       a: faker.datatype.string(4),
       c: faker.datatype.number(4),
-      b: faker.datatype.array().filter(srcUtils.valueIs.aNumber),
-      e: faker.datatype.array().filter(srcUtils.valueIs.aString),
+      b: faker.datatype.array().filter(valueIs.aNumber),
+      e: faker.datatype.array().filter(valueIs.aString),
       f: faker.datatype.boolean() ? 0 : faker.datatype.number(10),
     };
 

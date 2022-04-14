@@ -2,27 +2,28 @@
 import bootstrap from '../src/cmds/bootstrap';
 import parseScaffyConfig from '../src/app/parseConfig';
 
-import { testDataDir } from './test-setup';
+import { ExitCodes } from '../src/constants';
 import { parseProjectDependencies } from '../src/app/helpers';
+import { ConfigEntry, ConfigSchema } from '../src/compiler/types';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect, beforeAll, jest } from '@jest/globals';
-import { ConfigEntry, ConfigSchema, ExitCodes } from '../src/compiler/types';
-import { isEmpty, isSubset, pickObjPropsToAnotherObj } from '../src/utils';
+import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
 import {
-  srcUtils,
-  doAllFilesExist,
-  isSuccessfulPromise,
-  didAllPromisesSucceed,
-} from './helpers';
+  isEmpty,
+  isSubset,
+  extractBasenameFromPath,
+  pickObjPropsToAnotherObj,
+} from '../src/utils';
 
-const testingDir = `${testDataDir}/for-bootstrap-cmd`;
 const pathToScaffyConfig = `./sample.scaffy.json`;
 
 let toolNamesInConfig: string[];
 let sampleScaffyConfig: ConfigSchema;
 
 beforeAll(async () => {
+  const testingDir = `./for-bootstrap-cmd`;
   process.chdir(testingDir);
+
   sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
   toolNamesInConfig = Object.keys(sampleScaffyConfig);
 });
@@ -49,10 +50,11 @@ async function computeToolBootstrapResults(
     ...Object.keys(projectDependencies.devDependencies),
   ];
 
-  const { deps, devDeps, remoteConfigurations, localConfigurations } = toolConfigObj;
-  const allToolDeps = [...deps, ...devDeps];
-  const allToolConfigs = [...localConfigurations, ...remoteConfigurations].map(
-    srcUtils.extractBasenameFromPath
+  const { depNames, devDepNames, remoteConfigurationUrls, localConfigurationPaths } =
+    toolConfigObj;
+  const allToolDeps = [...depNames, ...devDepNames];
+  const allToolConfigs = [...localConfigurationPaths, ...remoteConfigurationUrls].map(
+    extractBasenameFromPath
   );
 
   const installationResults: ToolBootstrapResult = {
@@ -88,7 +90,7 @@ function bootstrapWasSuccessful(bootstrapResults: ToolBootstrapResult): boolean 
   return installationStatuses.every(bool => bool === true);
 }
 
-test('Should make sure bootstrap command installs deps and retrieves files as required for a single tool scaffolding (bootstrapping)', async () => {
+test('Should make sure bootstrap command installs depNames and retrieves files as required for a single tool scaffolding (bootstrapping)', async () => {
   // Arrange
   const sampleToolsArg = [toolNamesInConfig[0], 'sfsfsd', 'svwrefrw', 'fewfwe'];
   const testSubjectToolCOnfig = sampleScaffyConfig[sampleToolsArg[0]] as ConfigEntry;

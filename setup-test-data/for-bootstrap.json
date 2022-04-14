@@ -1,31 +1,31 @@
 {
   "eslint": {
-    "deps": ["eslint-plugin-react", "emotion", "yup"],
-    "devDeps": ["eslint", "jest", "zod"],
-    "remoteConfigurations": [
+    "depNames": ["eslint-plugin-react", "emotion", "yup"],
+    "devDepNames": ["eslint", "jest", "zod"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
     ],
-    "localConfigurations": ["../local-configs/.prettierrc"]
+    "localConfigurationPaths": ["../local-configs/.prettierrc"]
   },
 
   "react": {
-    "deps": ["react", "styled-components", "framer-motion"],
-    "devDeps": ["typescript", "react-dom", "react-hot-toast"],
-    "remoteConfigurations": [
+    "depNames": ["react", "styled-components", "framer-motion"],
+    "devDepNames": ["typescript", "react-dom", "react-hot-toast"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js",
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/.babelrc.js"
     ],
-    "localConfigurations": ["../local-configs/main.rs", "../local-configs/sample.ts"]
+    "localConfigurationPaths": ["../local-configs/main.rs", "../local-configs/sample.ts"]
   },
 
   "webpack": {
-    "deps": ["webpack-dev-server", "sequelize"],
-    "devDeps": ["webpack", "crossenv"],
-    "remoteConfigurations": [
+    "depNames": ["webpack-dev-server", "sequelize"],
+    "devDepNames": ["webpack", "crossenv"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
     ],
-    "localConfigurations": [
+    "localConfigurationPaths": [
       "../local-configs/hello.rs",
       "../local-configs/another-file.ts",
       "../local-configs/some.js"
@@ -33,13 +33,13 @@
   },
 
   "vue": {
-    "deps": ["ts-node", "nodemon", "vite"],
-    "devDeps": ["react-toast", "xstate"],
-    "remoteConfigurations": [
+    "depNames": ["ts-node", "nodemon", "vite"],
+    "devDepNames": ["react-toast", "xstate"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/createDesinationsFile.sh",
       "https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/README.md"
     ],
-    "localConfigurations": [
+    "localConfigurationPaths": [
       "../local-configs/xxt.ts",
       "../local-configs/help.ts",
       "../local-configs/srr.ts"
@@ -47,15 +47,15 @@
   },
 
   "tailwind": {
-    "remoteConfigurations": [
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/postcss.config.js"
     ],
-    "localConfigurations": []
+    "localConfigurationPaths": []
   },
 
   "orange": {
-    "deps": ["jest", "cypress"],
-    "localConfigurations": [
+    "depNames": ["jest", "cypress"],
+    "localConfigurationPaths": [
       "../local-configs/hello.rs",
       "../local-configs/another-file.ts",
       "../local-configs/some.js"
@@ -63,30 +63,30 @@
   },
 
   "batty": {
-    "deps": ["tsup"]
+    "depNames": ["tsup"]
   },
 
   "bad": {
-    "deps": ["j", "n", "trash-cli"],
-    "devDeps": 123,
-    "localConfigurations": "Opp",
-    "remoteConfigurations": ["../local-configs/t.js"]
+    "depNames": ["j", "n", "trash-cli"],
+    "devDepNames": 123,
+    "localConfigurationPaths": "Opp",
+    "remoteConfigurationUrls": ["../local-configs/t.js"]
   },
 
   "erroring1": {
-    "deps": ["#@#!", "$$#%", "l"],
-    "devDeps": ["$#!!@d", "#!@dd", "!@#ER"],
-    "remoteConfigurations": ["https://olfr.com/fff.pdf", "https://olfr.com/f2.pdf"],
-    "localConfigurations": ["../local-configs/m.ts"]
+    "depNames": ["#@#!", "$$#%", "l"],
+    "devDepNames": ["$#!!@d", "#!@dd", "!@#ER"],
+    "remoteConfigurationUrls": ["https://olfr.com/fff.pdf", "https://olfr.com/f2.pdf"],
+    "localConfigurationPaths": ["../local-configs/m.ts"]
   },
 
   "someErroring": {
-    "deps": ["yargs", "dotenv", "@!!@", "##!"],
-    "devDeps": ["##$!", "@!#", "$@#D"],
-    "remoteConfigurations": [
+    "depNames": ["yargs", "dotenv", "@!!@", "##!"],
+    "devDepNames": ["##$!", "@!#", "$@#D"],
+    "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/cypress.json"
     ],
-    "localConfigurations": ["../local-configs/s.js"]
+    "localConfigurationPaths": ["../local-configs/s.js"]
   },
 
   "1": 222,

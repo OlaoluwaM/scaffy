@@ -1,14 +1,14 @@
 import path from 'path';
 import prompts from 'prompts';
 
-import { SCAFFY_CONFIG_GLOB } from '../constants';
-import { EnumKeys, ExitCodes } from '../compiler/types';
+import { EnumKeys } from '../compiler/types';
+import { SCAFFY_CONFIG_GLOB, ExitCodes } from '../constants';
 import { genericErrorHandler, searchForFile } from './helpers';
 import {
   pipe,
   filterOutPaths,
   includedInCollection,
-  extractSubsetFromCollection,
+  extractSetFromCollection,
 } from '../utils';
 
 enum Commands {
@@ -115,20 +115,16 @@ function extractCommandInsightFromCliArgs(
   return commandInsight;
 }
 
-function extractToolsFromCliArgs(
-  restOfCliArgs: RestOfCliArgs,
-): string[] {
+function extractToolsFromCliArgs(restOfCliArgs: RestOfCliArgs): string[] {
   const parsedTools = pipe(
-    extractSubsetFromCollection.bind(null, restOfCliArgs, cliApiStringArr, true),
+    extractSetFromCollection.bind(null, restOfCliArgs, cliApiStringArr, true),
     filterOutPaths
   )() as string[];
 
   return parsedTools;
 }
 
-async function extractPathToConfFromCliArgs(
-  cliArgs: string[],
-): Promise<string> {
+async function extractPathToConfFromCliArgs(cliArgs: string[]): Promise<string> {
   const indexOfPathOption = cliArgs.findIndex(
     arg => arg === cliApiObj['--config'] || arg === cliApiObj['-c']
   );
@@ -144,6 +140,7 @@ async function getDesiredScaffyConfigMatch(
   globPattern = SCAFFY_CONFIG_GLOB
 ): Promise<string> {
   const patternMatches = await searchForFile(globPattern);
+  if (patternMatches.length === 1) return patternMatches[0];
 
   const { desiredConfig } = await prompts({
     type: 'select',

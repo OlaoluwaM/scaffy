@@ -1,7 +1,12 @@
-import { srcUtils } from './helpers';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { test, expect, describe } from '@jest/globals';
-// import { isSubset, extractSubsetFromCollection, rawTypeOf } from '../src/utils';
+import {
+  isSubset,
+  rawTypeOf,
+  isObjSubset,
+  pickObjPropsToAnotherObj,
+  extractSetFromCollection,
+} from '../src/utils';
 
 describe('Tests for asserting array and object subsets', () => {
   test.each([
@@ -14,7 +19,7 @@ describe('Tests for asserting array and object subsets', () => {
     (expected, arrA, arrB) => {
       // Arrange
       // Act
-      const arrAIsSubsetOfArrB = srcUtils.isSubset(arrA, arrB);
+      const arrAIsSubsetOfArrB = isSubset(arrA, arrB);
 
       // Assert
       expect(arrAIsSubsetOfArrB).toBe(expected);
@@ -34,7 +39,7 @@ describe('Tests for asserting array and object subsets', () => {
     (expected, arrA, arrB) => {
       // Arrange
       // Act
-      const arrAIsSubsetOfArrB = srcUtils.isObjSubset(arrA, arrB);
+      const arrAIsSubsetOfArrB = isObjSubset(arrA, arrB);
 
       // Assert
       expect(arrAIsSubsetOfArrB).toBe(expected);
@@ -54,11 +59,7 @@ describe('Tests for handling subsets of arrays', () => {
     'Should check that we can extract and exclude subsets from arrays with utility function',
     (firstArg, secondArg, expectation, shouldExclude) => {
       // Act
-      const output = srcUtils.extractSubsetFromCollection(
-        firstArg,
-        secondArg,
-        shouldExclude
-      );
+      const output = extractSetFromCollection(firstArg, secondArg, shouldExclude);
 
       // Assert
       expect(output).toEqual(expectation);
@@ -78,7 +79,7 @@ describe('Tests for retrieving the raw types of entities', () => {
     'Should check that we can get the actual data type of entities',
     (value: unknown, expectedType: string) => {
       // Act
-      const computedType = srcUtils.rawTypeOf(value);
+      const computedType = rawTypeOf(value);
 
       // Assert
       expect(computedType).toBe(expectedType);
@@ -102,7 +103,7 @@ describe('Tests for utility to extract properties to separate object', () => {
     };
 
     // Act
-    const outputObj = srcUtils.pickObjPropsToAnotherObj(initialObject, ['a', 'b']);
+    const outputObj = pickObjPropsToAnotherObj(initialObject, ['a', 'b']);
 
     // Assert
     expect(outputObj).toEqual(desiredOutputObj);
@@ -123,7 +124,7 @@ describe('Tests for utility to extract properties to separate object', () => {
     };
 
     // Act
-    const outputObj = srcUtils.pickObjPropsToAnotherObj(initialObject, ['a', 'b'], true);
+    const outputObj = pickObjPropsToAnotherObj(initialObject, ['a', 'b'], true);
 
     // Assert
     expect(outputObj).toEqual(desiredOutputObj);
@@ -142,7 +143,7 @@ describe('Tests for utility to extract properties to separate object', () => {
     };
 
     // Act
-    const outputObj = srcUtils.pickObjPropsToAnotherObj(initialObject, [
+    const outputObj = pickObjPropsToAnotherObj(initialObject, [
       'd',
       'd',
       'd',

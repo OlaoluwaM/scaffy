@@ -2,16 +2,17 @@ import path from 'path';
 import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
+import { ExitCodes } from '../constants';
+import { Dependencies } from '../compiler/types';
 import { fs, $, globby } from 'zx';
-import { ExitCodes, ConfigSchema, Dependencies } from '../compiler/types';
-import { error, info, success, extractSubsetFromCollection, objSet } from '../utils';
+import { error, objSet } from '../utils';
 
 interface SamplePackageJson {
   readonly version: string;
   readonly dependencies: Dependencies;
   readonly devDependencies: Dependencies;
 }
-interface ProjectDependencies extends SamplePackageJson {
+export interface ProjectDependencies extends SamplePackageJson {
   readonly originalObj: {
     -readonly [Key in keyof SamplePackageJson]: SamplePackageJson[Key];
   };
@@ -24,9 +25,9 @@ export async function parseProjectDependencies(
     const packageJsonObject = (await fs.readJSON(pathToPackageJson)) as SamplePackageJson;
 
     return {
-      version: packageJsonObject.version,
-      dependencies: packageJsonObject.dependencies,
-      devDependencies: packageJsonObject.devDependencies,
+      version: packageJsonObject?.version ?? '1.0.0',
+      dependencies: packageJsonObject?.dependencies ?? [],
+      devDependencies: packageJsonObject?.devDependencies ?? [],
       originalObj: packageJsonObject,
     };
   } catch {
@@ -62,10 +63,7 @@ export async function removeEntityAt(
   options: EntityRemovalOptions = defaultEntityRemovalOptions
 ) {
   try {
-    info(`Removing ${entityName}....`);
     await fs.rm(entityPath, options);
-
-    success(`${entityName} removed!`);
   } catch (err) {
     error(`Error occurred while trying to remove ${entityName}`);
     error((err as Error).message);
@@ -101,7 +99,7 @@ export function determineRootDirectory(): string {
   return path.resolve('./');
 }
 
-type DepProps = 'dependencies' | 'devDependencies';
+export type DepProps = 'dependencies' | 'devDependencies';
 export async function updatePackageJsonDeps(
   packageJsonPath: string,
   propToUpdate: DepProps,
@@ -117,9 +115,7 @@ async function rewriteExistingPackageJson(
   newPackageJsonData: SamplePackageJson
 ) {
   try {
-    info(`Rewriting ${packageJsonPath}...`);
     await fsPromise.writeFile(packageJsonPath, JSON.stringify(newPackageJsonData));
-    return success(`${packageJsonPath} rewritten successfully`);
   } catch (err) {
     error('Failed to update package.json file');
     error(`The following error occurred: ${err}`);

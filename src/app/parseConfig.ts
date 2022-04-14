@@ -1,6 +1,7 @@
+import { ExitCodes } from '../constants';
 import { fs as fsExtra } from 'zx';
 import { error, isEmpty, rawTypeOf, valueIs } from '../utils';
-import { AnyObject, ConfigEntry, ConfigSchema, ExitCodes } from '../compiler/types';
+import { AnyObject, ConfigEntry, ConfigSchema } from '../compiler/types';
 import {
   ArrayValidator,
   StringValidator,
@@ -11,10 +12,10 @@ import {
 type RawConfigSchema = { [toolName: string]: Partial<ConfigEntry> };
 
 export const CONFIG_ENTRY_SCHEMA: InterfaceToValidatorSchema<ConfigEntry> = {
-  deps: ArrayValidator(StringValidator(), { allowEmpty: true }),
-  devDeps: ArrayValidator(StringValidator(), { allowEmpty: true }),
-  localConfigurations: ArrayValidator(StringValidator(), { allowEmpty: true }),
-  remoteConfigurations: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  depNames: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  devDepNames: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  localConfigurationPaths: ArrayValidator(StringValidator(), { allowEmpty: true }),
+  remoteConfigurationUrls: ArrayValidator(StringValidator(), { allowEmpty: true }),
 };
 
 export default async function parseScaffyConfig(path: string): Promise<ConfigSchema> {
@@ -87,10 +88,10 @@ function fillInMissingEntryMembersIfNecessary(
   normalizedConfigEntry: Partial<ConfigEntry>
 ): ConfigEntry {
   const DEFAULT_CONFIG_ENTRY: ConfigEntry = {
-    deps: [],
-    devDeps: [],
-    localConfigurations: [],
-    remoteConfigurations: [],
+    depNames: [],
+    devDepNames: [],
+    localConfigurationPaths: [],
+    remoteConfigurationUrls: [],
   };
 
   return { ...DEFAULT_CONFIG_ENTRY, ...normalizedConfigEntry };
