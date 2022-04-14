@@ -96,18 +96,17 @@ function defaultErrorCallback(err: Error | string) {
   } else error(err);
 }
 
-export function extractSubsetFromCollection<R>(
-  superset: unknown[],
-  subset: unknown[],
+export function extractSetFromCollection<ArrA, ArrB>(
+  collectionOne: ArrA[],
+  collectionTwo: (ArrA | ArrB)[],
   excludeSubset = false
 ) {
-  return superset.filter(elem => {
-    const elemIsInSubset = subset.includes(elem);
+  return collectionOne.filter(elem => {
+    const elemIsInSubset = collectionTwo.includes(elem);
     return excludeSubset ? !elemIsInSubset : elemIsInSubset;
-  }) as R[];
+  });
 }
 
-// TODO: Test this
 export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   initialObject: O,
   targetProperties: P[],
@@ -127,7 +126,7 @@ export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   targetProperties: P[],
   excludeProperties?: boolean
 ) {
-  const desiredPropertyKeys = extractSubsetFromCollection(
+  const desiredPropertyKeys = extractSetFromCollection(
     Object.keys(initialObject),
     targetProperties,
     excludeProperties
@@ -167,6 +166,10 @@ export const valueIs = {
 
   aNumber(val: unknown): val is number {
     return rawTypeOf(val) === 'number';
+  },
+
+  true(val: unknown): val is true {
+    return val === true;
   },
 };
 

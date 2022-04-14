@@ -12,7 +12,7 @@ interface SamplePackageJson {
   readonly dependencies: Dependencies;
   readonly devDependencies: Dependencies;
 }
-interface ProjectDependencies extends SamplePackageJson {
+export interface ProjectDependencies extends SamplePackageJson {
   readonly originalObj: {
     -readonly [Key in keyof SamplePackageJson]: SamplePackageJson[Key];
   };
@@ -25,9 +25,9 @@ export async function parseProjectDependencies(
     const packageJsonObject = (await fs.readJSON(pathToPackageJson)) as SamplePackageJson;
 
     return {
-      version: packageJsonObject.version,
-      dependencies: packageJsonObject.dependencies,
-      devDependencies: packageJsonObject.devDependencies,
+      version: packageJsonObject?.version ?? '1.0.0',
+      dependencies: packageJsonObject?.dependencies ?? [],
+      devDependencies: packageJsonObject?.devDependencies ?? [],
       originalObj: packageJsonObject,
     };
   } catch {

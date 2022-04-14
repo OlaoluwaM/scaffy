@@ -5,7 +5,7 @@ import {
   rawTypeOf,
   isObjSubset,
   pickObjPropsToAnotherObj,
-  extractSubsetFromCollection,
+  extractSetFromCollection,
 } from '../src/utils';
 
 describe('Tests for asserting array and object subsets', () => {
@@ -59,7 +59,7 @@ describe('Tests for handling subsets of arrays', () => {
     'Should check that we can extract and exclude subsets from arrays with utility function',
     (firstArg, secondArg, expectation, shouldExclude) => {
       // Act
-      const output = extractSubsetFromCollection(firstArg, secondArg, shouldExclude);
+      const output = extractSetFromCollection(firstArg, secondArg, shouldExclude);
 
       // Assert
       expect(output).toEqual(expectation);
