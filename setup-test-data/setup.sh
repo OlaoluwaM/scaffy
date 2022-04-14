@@ -26,7 +26,7 @@ cd "$rootDir" || exit
 cp "${rootDir}/for-bootstrap.json" "${DATA_DIR}/for-bootstrap-cmd/sample.scaffy.json"
 
 echo "Setting up directory structure for remove command testing"
-touch $DATA_DIR/for-remove-cmd/{postcss.config.js,stub.js}
+touch $DATA_DIR/for-remove-cmd/{postcss.config.js,stub.js,.eslintrc.js,.prettierrc,webpack.config.js,.babelrc.js,jsconfig.json,main.rs,hello.rs,srr.ts,help.ts,xxt.ts,createDesinationsFile.sh,README.md}
 
 cat <<EOL >"${DATA_DIR}/for-remove-cmd/package.json"
 {
@@ -39,10 +39,23 @@ cat <<EOL >"${DATA_DIR}/for-remove-cmd/package.json"
   },
   "keywords": [],
   "dependencies": {
-    "eslint-plugin-react": "^7.28.0"
+    "eslint-plugin-react": "*",
+    "emotion": "*",
+    "yup": "*",
+    "framer-motion": "*",
+    "react": "*",
+    "vite": "*",
+    "ts-node": "*",
+    "nodemon": "*",
+    "vue": "*"
   },
   "devDependencies": {
-    "eslint": "^8.0.0"
+    "eslint": "*",
+    "jest": "*",
+    "xstate": "*",
+    "zod": "*",
+    "webpack-dev-server": "*",
+    "webpack": "*"
   },
   "engines": {
     "node": ">= 0.4.1"
@@ -50,18 +63,7 @@ cat <<EOL >"${DATA_DIR}/for-remove-cmd/package.json"
 }
 EOL
 
-cat <<EOL >"${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
-{
-  "eslint": {
-  "depNames": ["eslint-plugin-react"],
-  "devDepNames": ["eslint"],
-  "remoteConfigurationUrls": [
-  "https://raw.githubusercontent.com/OlaoluwaM/configs/main/postcss.config.js"
-  ],
-  "localConfigurationPaths": ["../local-configs/stub.js"]
-  }
-}
-EOL
+cp "${rootDir}/for-remove.json" "${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
 
 echo "Setting up other other-data dir"
 cp $rootDir/{valid-config,invalid-config,partial-invalid-config-entries,empty-config}.scaffy.json $DATA_DIR/other-data/

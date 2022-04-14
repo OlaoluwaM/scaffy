@@ -1,60 +1,37 @@
 import path from 'path';
 import download from '../app/downloadFile';
-import parseScaffyConfig from '../app/parseConfig';
 
 import { $ } from 'zx';
+import {
+  DepsMap,
+  CommandTemplate,
+  aggregateToolDependencies,
+  extractScaffyConfigSections,
+  generateDepsObj,
+} from './common';
+import { info, error, isEmpty, success, normalizeArrForSentence } from '../utils';
 import { ConfigEntry, ConfigSchema, Dependencies } from '../compiler/types';
-import {
-  DepProps,
-  genericErrorHandler,
-  updatePackageJsonDeps,
-  determineRootDirectory,
-} from '../app/helpers';
-import {
-  info,
-  error,
-  isEmpty,
-  success,
-  normalizeArrForSentence,
-  pickObjPropsToAnotherObj,
-  extractSubsetFromCollection,
-} from '../utils';
+import { DepProps, updatePackageJsonDeps, determineRootDirectory } from '../app/helpers';
 
 export default async function bootstrap(
   pathToScaffyConfig: string,
   rawToolsSpecified: string[]
 ) {
-  const scaffyConfObj = await parseScaffyConfig(pathToScaffyConfig);
-  const toolsInScaffyConfig = filterToolsAvailableInScaffyConfig(
-    rawToolsSpecified,
-    scaffyConfObj
+  const commandTemplateFnWithBootstrapSpecificLogic = CommandTemplate(
+    handleBootstrapCmdSpecificLogic
   );
+  await commandTemplateFnWithBootstrapSpecificLogic(
+    pathToScaffyConfig,
+    rawToolsSpecified
+  );
+}
 
-  exitIfThereAreNoToolsToBootstrap(toolsInScaffyConfig);
-
+async function handleBootstrapCmdSpecificLogic(
+  scaffyConfObj: ConfigSchema,
+  toolsInScaffyConfig: string[]
+) {
   await installAllToolDeps(toolsInScaffyConfig, scaffyConfObj);
   await retrieveToolConfigurations(scaffyConfObj, toolsInScaffyConfig);
-}
-
-function exitIfThereAreNoToolsToBootstrap(toolsInScaffyConfig: string[]) {
-  if (!isEmpty.array(toolsInScaffyConfig)) return;
-  genericErrorHandler(
-    'Seems like non of those tools were specified in your scaffy config',
-    false
-  );
-}
-
-function filterToolsAvailableInScaffyConfig(
-  rawPassedInTools: string[],
-  scaffyConf: ConfigSchema
-): string[] {
-  const scaffyToolNames = Object.keys(scaffyConf);
-  return extractSubsetFromCollection(rawPassedInTools, scaffyToolNames);
-}
-
-interface DepsMap {
-  depNames: string[];
-  devDepNames: string[];
 }
 
 async function installAllToolDeps(
@@ -67,39 +44,8 @@ async function installAllToolDeps(
     )}`
   );
 
-  const aggregateDependenciesToBeInstalled = aggregateDepTypeForDesiredTools(
-    toolsToBootStrap,
-    scaffyConfObj,
-    'depNames'
-  );
-
-  const aggregateDevDependenciesToBeInstalled = aggregateDepTypeForDesiredTools(
-    toolsToBootStrap,
-    scaffyConfObj,
-    'devDepNames'
-  );
-
-  const depsMap: DepsMap = {
-    depNames: aggregateDependenciesToBeInstalled,
-    devDepNames: aggregateDevDependenciesToBeInstalled,
-  };
-
-  await performDepsInstallation(depsMap);
-}
-
-type DependencyTypes = Extract<keyof ConfigEntry, 'depNames' | 'devDepNames'>;
-function aggregateDepTypeForDesiredTools(
-  tools: string[],
-  scaffyConfObj: ConfigSchema,
-  dependencyTypeToAggregate: DependencyTypes
-) {
-  const aggregateDeps = tools.flatMap(toolName => {
-    const toolNameConfigEntry = scaffyConfObj[toolName];
-    const targetDependencies = toolNameConfigEntry[dependencyTypeToAggregate];
-    return targetDependencies;
-  });
-
-  return aggregateDeps;
+  const fooOne = aggregateToolDependencies(performDepsInstallation);
+  await fooOne(toolsToBootStrap, scaffyConfObj);
 }
 
 async function performDepsInstallation(depsMap: DepsMap, installFlags: string[] = []) {
@@ -160,7 +106,7 @@ function installationTemplate(
     try {
       await devDepsInstallationCB();
     } catch (err) {
-      return error(`Error occurred installing dev dependencies \n${err}.\nSkipping...`);
+      error(`Error occurred installing dev dependencies \n${err}.\nSkipping...`);
     }
   };
 }
@@ -180,7 +126,7 @@ async function generateDependencyObj(depNames: string[]): Promise<Dependencies> 
     .map((doesPkgExist, ind) => (doesPkgExist ? depNames[ind] : false))
     .filter(Boolean) as string[];
 
-  const depObj = toDepObj(dependenciesThatExistInRegistry);
+  const depObj = generateDepsObj(dependenciesThatExistInRegistry);
   return depObj;
 }
 
@@ -195,26 +141,16 @@ async function doesPkgExistInNPMRegistry(pkgName: string): Promise<boolean> {
   }
 }
 
-function toDepObj(depsArr: string[]): Dependencies {
-  const DEFAULT_DEP_VERSION = '*' as const;
-  type DepEntry = [string, typeof DEFAULT_DEP_VERSION];
-
-  const depObjEntries: DepEntry[] = depsArr.map(depName => [
-    depName,
-    DEFAULT_DEP_VERSION,
-  ]);
-
-  const depObj: Dependencies = Object.fromEntries(depObjEntries);
-  return depObj;
-}
-
 async function installDependencies(depNames: string[], npmInstallFlags: string[] = []) {
   if (isEmpty.array(depNames)) return error(`No dependencies to install. Skipping...`);
   await $`npm i ${npmInstallFlags} ${depNames}`;
 }
 
-async function retrieveToolConfigurations(scaffyConfObj: ConfigSchema, tools: string[]) {
-  const retrievalPromises = tools.map(toolName => {
+async function retrieveToolConfigurations(
+  scaffyConfObj: ConfigSchema,
+  toolNames: string[]
+) {
+  const retrievalPromises = toolNames.map(toolName => {
     const toolConfigObj = scaffyConfObj[toolName];
     return retrieveIndividualConfigs(toolName, toolConfigObj);
   });
@@ -236,24 +172,6 @@ async function retrieveIndividualConfigs(toolName: string, toolConfObj: ConfigEn
   ]);
 
   return installationResults;
-}
-
-type ToolConfigs = Pick<
-  ConfigEntry,
-  'localConfigurationPaths' | 'remoteConfigurationUrls'
->;
-type ToolDeps = Pick<ConfigEntry, 'depNames' | 'devDepNames'>;
-
-function extractScaffyConfigSections(toolConfObj: ConfigEntry): {
-  toolConfigs: ToolConfigs;
-  toolDeps: ToolDeps;
-} {
-  const toolConfigs = pickObjPropsToAnotherObj(toolConfObj, [
-    'localConfigurationPaths',
-    'remoteConfigurationUrls',
-  ]);
-  const toolDeps = pickObjPropsToAnotherObj(toolConfObj, ['depNames', 'devDepNames']);
-  return { toolConfigs, toolDeps };
 }
 
 async function copyFiles(paths: string[], dest: string) {

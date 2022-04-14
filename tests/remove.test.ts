@@ -1,48 +1,106 @@
-/* global test, expect */
-
-import path from 'path';
 import parseScaffyConfig from '../src/app/parseConfig';
-// import uninstall from '../src/cmds/uninstall';
 
-import { isSubset } from '../src/utils';
-import { ConfigEntry } from '../src/compiler/types';
-import { doesPathExist, parseProjectDependencies } from '../src/app/helpers';
+import { didAllPromisesSucceed } from './helpers';
+import { isSubset, pickObjPropsToAnotherObj, valueIs } from '../src/utils';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { test, expect, beforeAll } from '@jest/globals';
+import { ConfigEntry, ConfigSchema } from '../src/compiler/types';
+import { default as remove, convertToAbsolutePath } from '../src/cmds/remove';
+import {
+  doesPathExist,
+  parseProjectDependencies,
+  ProjectDependencies,
+} from '../src/app/helpers';
 
-const pathToSampleProjectDir = path.resolve('./test-data/for-uninstall/');
-const pathToScaffyConfig = `${pathToSampleProjectDir}/sample.scaffy.json`;
+enum PathTo {
+  TESTING_DIR = './for-remove-cmd',
+  SCAFFY_CONFIG = './sample.scaffy.json',
+  PACKAGE_JSON = './package.json',
+}
 
-test.skip('Should make sure un-installation command removes depNames and downloads files as required', async () => {
+let toolNamesInConfig: string[];
+let sampleScaffyConfigObj: ConfigSchema;
+
+beforeAll(async () => {
+  process.chdir(PathTo.TESTING_DIR);
+
+  sampleScaffyConfigObj = await parseScaffyConfig(PathTo.SCAFFY_CONFIG);
+  toolNamesInConfig = Object.keys(sampleScaffyConfigObj);
+});
+
+async function generateRemovalResultBooleanVectorFromToolNameArr(
+  toolNames: string[]
+): Promise<boolean[]> {
+  const removalResultBooleanVectorPromises = toolNames.map(hasToolBeenUninstalled);
+  const removalResultBooleanVectorPromiseResults = await Promise.all(
+    removalResultBooleanVectorPromises
+  );
+
+  return removalResultBooleanVectorPromiseResults;
+}
+
+async function hasToolBeenUninstalled(toolName: string): Promise<boolean> {
+  const toolEntry = sampleScaffyConfigObj[toolName];
+  const projectDependencies = await parseProjectDependencies(PathTo.PACKAGE_JSON);
+
+  const depsAreUninstalled = haveToolDepsBeenUninstalled(toolEntry, projectDependencies);
+  const toolConfigsHaveBeenDeleted = await haveToolConfigsBeenDeleted(toolEntry);
+
+  return depsAreUninstalled && toolConfigsHaveBeenDeleted;
+}
+
+function haveToolDepsBeenUninstalled(
+  toolEntry: ConfigEntry,
+  projectDependencies: ProjectDependencies
+): boolean {
+  const { depNames: toolEntryDepNames, devDepNames: toolEntryDevDepNames } = toolEntry;
+
+  const projectDepNames = Object.keys(projectDependencies.dependencies);
+  const projectDevDepNames = Object.keys(projectDependencies.devDependencies);
+
+  const areToolDepsNoLongeSubsetOfProjectDeps = !isSubset(
+    projectDepNames,
+    toolEntryDepNames
+  );
+
+  const areToolDevDepsNoLongeSubsetOfProjectDevDeps = !isSubset(
+    projectDevDepNames,
+    toolEntryDevDepNames
+  );
+
+  return (
+    areToolDepsNoLongeSubsetOfProjectDeps && areToolDevDepsNoLongeSubsetOfProjectDevDeps
+  );
+}
+
+async function haveToolConfigsBeenDeleted(toolEntry: ConfigEntry): Promise<boolean> {
+  const toolConfigs = pickObjPropsToAnotherObj(toolEntry, [
+    'remoteConfigurationUrls',
+    'localConfigurationPaths',
+  ]);
+
+  const absolutePathsArrToToolConfigs = convertToAbsolutePath(
+    toolConfigs,
+    PathTo.TESTING_DIR
+  );
+
+  const pathExistencePromises = absolutePathsArrToToolConfigs.map(doesPathExist);
+  const pathExistencePromiseResult = await Promise.allSettled(pathExistencePromises);
+  return didAllPromisesSucceed(pathExistencePromiseResult);
+}
+
+test('Should make sure remove command deletes tool dependencies and configs', async () => {
   // Arrange
-  const sampleScaffyConfig = await parseScaffyConfig(pathToScaffyConfig);
-
-  const toolToSetup = sampleScaffyConfig.eslint as ConfigEntry;
-  // const tools = ['react', 'tailwind', ...Object.keys(sampleScaffyConfig)];
+  const toolsToSetup = ['zod', 'jest'].concat(toolNamesInConfig);
 
   // Act
-  // await uninstall(tools, pathToScaffyConfig);
-
-  const sampleProjectDirPackageJSONObj = await parseProjectDependencies(
-    pathToSampleProjectDir
-  );
-  const samplePackageJsonDeps = Object.keys(sampleProjectDirPackageJSONObj.dependencies);
-  const samplePackageJsonDevDeps = Object.keys(
-    sampleProjectDirPackageJSONObj.devDependencies
+  await remove(toolsToSetup, PathTo.SCAFFY_CONFIG);
+  const toolRemovalBooleanMap = await generateRemovalResultBooleanVectorFromToolNameArr(
+    toolNamesInConfig
   );
 
-  const sampleProjectDepsDoNotContainsScaffyDeps = [
-    !isSubset(samplePackageJsonDeps, toolToSetup.depNames),
-    !isSubset(samplePackageJsonDevDeps, toolToSetup.devDepNames),
-  ];
-
-  const remoteConfigsWereDeleted = !(await doesPathExist(
-    `${pathToSampleProjectDir}/${path.basename(toolToSetup.remoteConfigurationUrls[0])}`
-  ));
-  const localFilesWereRemoved = !(await doesPathExist(
-    `${pathToSampleProjectDir}/${path.basename(toolToSetup.localConfigurationPaths[0])}`
-  ));
+  const haveAllToolsBeenUninstalled = toolRemovalBooleanMap.every(valueIs.true);
 
   // Assert
-  expect(sampleProjectDepsDoNotContainsScaffyDeps).toBe([true, true]);
-  expect(localFilesWereRemoved).toBe(true);
-  expect(remoteConfigsWereDeleted).toBe(true);
-});
+  expect(haveAllToolsBeenUninstalled).toBe(true);
+}, 400000);

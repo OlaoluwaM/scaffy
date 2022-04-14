@@ -69,7 +69,7 @@ export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   targetProperties: P[],
   excludeProperties?: boolean
 ) {
-  const desiredPropertyKeys = extractSubsetFromCollection(
+  const desiredPropertyKeys = extractSetFromCollection(
     Object.keys(initialObject),
     targetProperties,
     excludeProperties
@@ -84,7 +84,7 @@ export function pickObjPropsToAnotherObj<O extends {}, P extends keyof O>(
   return objWithDesiredProperties;
 }
 
-export function extractSubsetFromCollection<R>(
+export function extractSetFromCollection<R>(
   superset: unknown[],
   subset: unknown[],
   excludeSubset = false
