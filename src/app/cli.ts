@@ -1,8 +1,8 @@
+import remove from '../cmds/remove';
 import bootstrap from '../cmds/bootstrap';
 import outputHelp from '../cmds/help';
 import outPutCliVersion from '../cmds/version';
 
-import { info } from '../utils';
 import { ExitCodes } from '../constants';
 import { genericErrorHandler } from './helpers';
 import { ParsedArguments, cliApiObj } from './parseArgs';
@@ -18,7 +18,7 @@ export default async function cli(parsedArguments: ParsedArguments, cliApi = cli
 
     case cliApi.remove:
     case cliApi.rm:
-      info('Not Implemented');
+      await remove(pathToScaffyConfig, tools);
       break;
 
     case cliApi['--help']:

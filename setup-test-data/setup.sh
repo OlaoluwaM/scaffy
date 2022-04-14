@@ -68,4 +68,4 @@ cp "${rootDir}/for-remove.json" "${DATA_DIR}/for-remove-cmd/sample.scaffy.json"
 echo "Setting up other other-data dir"
 cp $rootDir/{valid-config,invalid-config,partial-invalid-config-entries,empty-config}.scaffy.json $DATA_DIR/other-data/
 
-echo "Done!"
+echo -e "Done!\n"

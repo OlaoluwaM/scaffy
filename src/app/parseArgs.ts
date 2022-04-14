@@ -140,6 +140,7 @@ async function getDesiredScaffyConfigMatch(
   globPattern = SCAFFY_CONFIG_GLOB
 ): Promise<string> {
   const patternMatches = await searchForFile(globPattern);
+  if (patternMatches.length === 1) return patternMatches[0];
 
   const { desiredConfig } = await prompts({
     type: 'select',

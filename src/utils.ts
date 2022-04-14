@@ -1,19 +1,21 @@
 import path from 'path';
 
 import { chalk } from 'zx';
+import { oraPromise } from 'ora';
 import { AnyObject, Primitive } from './compiler/types';
-import { ErrorHook, ERROR_HOOK } from './constants';
+import { ErrorHook, ERROR_HOOK, LEFT_PADDING_SIZE } from './constants';
 
 export function info(msg: string) {
-  console.info(chalk.whiteBright.bold(msg));
+  console.info(addSpacesToString(chalk.whiteBright.bold(msg), LEFT_PADDING_SIZE));
 }
 
 export function success(msg: string) {
-  console.log(chalk.greenBright.bold(msg));
+  console.log(addSpacesToString(chalk.greenBright.bold(msg), LEFT_PADDING_SIZE));
 }
 
-export function error(msg: string) {
-  console.error(chalk.red.bold(msg));
+export function error(msg: string, shouldThrow: boolean = false) {
+  console.error(addSpacesToString(chalk.red.bold(msg), LEFT_PADDING_SIZE));
+  if (shouldThrow) throw new Error(msg);
 }
 
 export function pipe(...fns: readonly ((...args: any[]) => any)[]) {
@@ -193,8 +195,83 @@ export function extractBasenameFromPath(filepath: string): string {
   return path.basename(filepath);
 }
 
-export function normalizeArrForSentence(arr: unknown[]): string {
-  return arr.join(' ');
+export function normalizeArrForSentence(arrOfWords: string[]): string {
+  switch (arrOfWords.length) {
+    case 0:
+    case 1:
+      return arrOfWords[0] ?? '';
+    case 2:
+      return `${arrOfWords[0]} and ${arrOfWords[1]}`;
+    default:
+      return createGrammaticalSentence(arrOfWords);
+  }
+}
+
+function createGrammaticalSentence(arrOfWords: string[]): string {
+  const arrCopy = [...arrOfWords];
+
+  const lastSentenceElement = `and ${arrCopy.pop()}`;
+  arrCopy.push(lastSentenceElement);
+
+  const sentenceList = arrCopy.join(', ');
+  return sentenceList;
+}
+
+interface AsyncProcessSpinnerOptions {
+  initialText: string;
+  onSuccessText: string;
+  onFailText: string;
+}
+type IdleAsyncSpinnerProcess<PromiseType> = () => Promise<PromiseType>;
+export class AsyncProcessSpinner<PromiseType> {
+  #defaultSpinnerOptions = {
+    initialText: 'Loading...',
+    onSuccessText: 'Success!',
+    onFailText: 'Error!',
+  };
+
+  #spinnerOptions: AsyncProcessSpinnerOptions;
+
+  #asyncSpinnerProcess: IdleAsyncSpinnerProcess<PromiseType>;
+
+  constructor(
+    promise: Promise<PromiseType>,
+    options: Partial<AsyncProcessSpinnerOptions>
+  ) {
+    this.#spinnerOptions = { ...this.#defaultSpinnerOptions, ...options };
+    const oraCompatibleOptions = this.#mapPublicOptionsToImplementationOptions();
+
+    this.#asyncSpinnerProcess = oraPromise.bind(
+      null,
+      promise,
+      oraCompatibleOptions
+    ) as IdleAsyncSpinnerProcess<PromiseType>;
+  }
+
+  #mapPublicOptionsToImplementationOptions(): {
+    text: string;
+    successText: string;
+    failText: string;
+  } {
+    const { onSuccessText, onFailText, initialText } = this.#spinnerOptions;
+
+    return {
+      text: initialText,
+      successText: onSuccessText,
+      failText: onFailText,
+    };
+  }
+
+  async startAsyncSpinnerWithPromise() {
+    return this.#asyncSpinnerProcess();
+  }
+}
+
+export function addSpacesToString(text: string, numberOfSpaces: number): string {
+  const SPACE_CHAR = ' ';
+  const spaces = SPACE_CHAR.repeat(numberOfSpaces);
+  const spacesWithText = spaces.concat(text);
+  return spacesWithText;
 }
 
 // NOTE: Copy on write ops
