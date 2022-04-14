@@ -4,31 +4,31 @@ import { $ } from 'zx';
 import { ConfigEntry, ConfigSchema } from '../compiler/types';
 import {
   DepProps,
-  determineRootDirectory,
-  parseProjectDependencies,
   removeEntityAt,
   updatePackageJsonDeps,
+  determineRootDirectory,
+  parseProjectDependencies,
 } from '../app/helpers';
 import {
+  info,
   error,
+  isEmpty,
+  AsyncProcessSpinner,
   extractBasenameFromPath,
   extractSetFromCollection,
-  info,
-  isEmpty,
-  normalizeArrForSentence,
 } from '../utils';
 import {
   DepsMap,
   ToolConfigs,
   CommandTemplate,
-  extractScaffyConfigSections,
-  aggregateToolDependencies,
   generateDepsObj,
+  aggregateToolDependencies,
+  extractScaffyConfigSections,
 } from './common';
 
 export default async function remove(
-  rawToolsSpecified: string[],
-  pathToScaffyConfig: string
+  pathToScaffyConfig: string,
+  rawToolsSpecified: string[]
 ) {
   const commandTemplateFnWithBootstrapSpecificLogic = CommandTemplate(
     handleRemoveCmdSpecificLogic
@@ -41,28 +41,42 @@ export default async function remove(
 
 async function handleRemoveCmdSpecificLogic(
   scaffyConfObj: ConfigSchema,
-  toolsInScaffyConfig: string[]
+  toolsInScaffyConfig: string[],
+  toolListStr: string
 ) {
-  await uninstallToolDeps(toolsInScaffyConfig, scaffyConfObj);
-  await deleteToolConfigurations(scaffyConfObj, toolsInScaffyConfig);
+  const uninstallToolDepsWithSpinner = new AsyncProcessSpinner(
+    uninstallToolDeps(toolsInScaffyConfig, scaffyConfObj),
+    {
+      initialText: `Removing regular and dev dependencies for ${toolListStr}\n`,
+      onSuccessText: ` All dependencies for ${toolListStr} have been removed!`,
+      onFailText: ` Error occurred while removing some dependencies for ${toolListStr}`,
+    }
+  );
+
+  await uninstallToolDepsWithSpinner.startAsyncSpinnerWithPromise();
+
+  const deleteToolConfigsWithSpinner = new AsyncProcessSpinner(
+    deleteToolConfigurations(scaffyConfObj, toolsInScaffyConfig),
+    {
+      initialText: `Removing config files for ${toolListStr}\n`,
+      onSuccessText: ` All config files for ${toolListStr} have been removed!`,
+      onFailText: ` Error occurred while removing some config files for ${toolListStr}`,
+    }
+  );
+
+  await deleteToolConfigsWithSpinner.startAsyncSpinnerWithPromise();
 }
 
 async function uninstallToolDeps(
   toolsToBootStrap: string[],
   scaffyConfObj: ConfigSchema
 ) {
-  info(
-    `Uninstalling dependencies for the following tools: ${normalizeArrForSentence(
-      toolsToBootStrap
-    )}`
-  );
-
-  const fooOne = aggregateToolDependencies(performDepsRemoval);
-  await fooOne(toolsToBootStrap, scaffyConfObj);
+  const unInstallAggregateToolDeps = aggregateToolDependencies(performDepsRemoval);
+  await unInstallAggregateToolDeps(toolsToBootStrap, scaffyConfObj);
 }
 
 async function performDepsRemoval(depsMap: DepsMap) {
-  const depsUninstallFn = determineUninstallationFn(depsMap);
+  const depsUninstallFn = determineUninstallationFnToUse(depsMap);
 
   try {
     await depsUninstallFn();
@@ -71,7 +85,7 @@ async function performDepsRemoval(depsMap: DepsMap) {
   }
 }
 
-function determineUninstallationFn(depsMap: DepsMap) {
+function determineUninstallationFnToUse(depsMap: DepsMap) {
   const { depNames, devDepNames } = depsMap;
   const allDependencyNames = [...depNames, ...devDepNames];
 
@@ -82,7 +96,8 @@ function determineUninstallationFn(depsMap: DepsMap) {
 }
 
 async function uninstallDependencies(depNames: string[]) {
-  if (isEmpty.array(depNames)) return error(`No dependencies to remove. Skipping...`);
+  if (isEmpty.array(depNames)) return;
+
   await $`npm un ${depNames}`;
 }
 
@@ -96,7 +111,6 @@ async function mockUninstallOfDependencies(depsMap: DepsMap) {
   ]);
 
   const [filteredDepNames, filteredDevDepNames] = filteredProjectDeps;
-  console.log({ filteredDepNames, filteredDevDepNames });
 
   const filteredDepObj = generateDepsObj(filteredDepNames);
   const filteredDevDepObj = generateDepsObj(filteredDevDepNames);
@@ -127,25 +141,15 @@ async function deleteToolConfigurations(
   scaffyConfObj: ConfigSchema,
   toolNames: string[]
 ) {
-  info(
-    `Removing configuration for the following tools: ${normalizeArrForSentence(
-      toolNames
-    )}`
-  );
-
   const configDeletionPromises = toolNames.map(toolName => {
     const toolConfigObj = scaffyConfObj[toolName];
-    return deleteConfigurationForIndividualEntry(toolName, toolConfigObj);
+    return deleteConfigurationForIndividualEntry(toolConfigObj);
   });
 
   await Promise.allSettled(configDeletionPromises);
 }
 
-async function deleteConfigurationForIndividualEntry(
-  toolName: string,
-  toolConfObj: ConfigEntry
-) {
-  info(`Removing configurations for ${toolName}...`);
+async function deleteConfigurationForIndividualEntry(toolConfObj: ConfigEntry) {
   const projectRootDir = determineRootDirectory();
 
   const { toolConfigs } = extractScaffyConfigSections(toolConfObj);

@@ -2,11 +2,17 @@ import parseScaffyConfig from '../app/parseConfig';
 
 import { genericErrorHandler } from '../app/helpers';
 import { ConfigEntry, ConfigSchema, Dependencies } from '../compiler/types';
-import { isEmpty, pickObjPropsToAnotherObj, extractSetFromCollection } from '../utils';
+import {
+  isEmpty,
+  normalizeArrForSentence,
+  pickObjPropsToAnotherObj,
+  extractSetFromCollection,
+} from '../utils';
 
 type RestOfCommandFn = (
   scaffyConfObj: ConfigSchema,
-  toolsInScaffyConfig: string[]
+  toolsInScaffyConfig: string[],
+  tooListStr: string
 ) => Promise<void>;
 export function CommandTemplate(restOfCommand: RestOfCommandFn) {
   return async (pathToScaffyConfig: string, rawToolsSpecified: string[]) => {
@@ -19,7 +25,12 @@ export function CommandTemplate(restOfCommand: RestOfCommandFn) {
 
     exitIfThereAreNoToolsToBootstrap(toolsInScaffyConfig);
 
-    await restOfCommand(scaffyConfObj, toolsInScaffyConfig);
+    const toolSentenceStr = normalizeArrForSentence(toolsInScaffyConfig);
+    const toolListStr = isEmpty.string(toolSentenceStr)
+      ? 'the tools specified'
+      : toolSentenceStr;
+
+    await restOfCommand(scaffyConfObj, toolsInScaffyConfig, toolListStr);
   };
 }
 

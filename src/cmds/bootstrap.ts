@@ -2,16 +2,16 @@ import path from 'path';
 import download from '../app/downloadFile';
 
 import { $ } from 'zx';
+import { ConfigEntry, ConfigSchema, Dependencies } from '../compiler/types';
+import { error, isEmpty, AsyncProcessSpinner, info } from '../utils';
+import { DepProps, updatePackageJsonDeps, determineRootDirectory } from '../app/helpers';
 import {
   DepsMap,
+  generateDepsObj,
   CommandTemplate,
   aggregateToolDependencies,
   extractScaffyConfigSections,
-  generateDepsObj,
 } from './common';
-import { info, error, isEmpty, success, normalizeArrForSentence } from '../utils';
-import { ConfigEntry, ConfigSchema, Dependencies } from '../compiler/types';
-import { DepProps, updatePackageJsonDeps, determineRootDirectory } from '../app/helpers';
 
 export default async function bootstrap(
   pathToScaffyConfig: string,
@@ -28,24 +28,38 @@ export default async function bootstrap(
 
 async function handleBootstrapCmdSpecificLogic(
   scaffyConfObj: ConfigSchema,
-  toolsInScaffyConfig: string[]
+  toolsInScaffyConfig: string[],
+  toolListStr: string
 ) {
-  await installAllToolDeps(toolsInScaffyConfig, scaffyConfObj);
-  await retrieveToolConfigurations(scaffyConfObj, toolsInScaffyConfig);
+  const installToolDepsWithSpinner = new AsyncProcessSpinner(
+    installAllToolDeps(toolsInScaffyConfig, scaffyConfObj),
+    {
+      initialText: `Installing regular and dev dependencies for ${toolListStr}...\n`,
+      onSuccessText: ` All valid dependencies for ${toolListStr} have been installed!`,
+      onFailText: ` Error occurred while installing some dependencies for ${toolListStr}`,
+    }
+  );
+
+  await installToolDepsWithSpinner.startAsyncSpinnerWithPromise();
+
+  const retrieveToolConfigurationsWithSpinner = new AsyncProcessSpinner(
+    retrieveToolConfigurations(scaffyConfObj, toolsInScaffyConfig),
+    {
+      initialText: `Retrieving remote and local configurations for ${toolListStr}...\n`,
+      onSuccessText: ` All valid configs for ${toolListStr} have been copied and downloaded!`,
+      onFailText: ` An error occurred while trying to retrieve some of the tool configurations for ${toolListStr}`,
+    }
+  );
+
+  await retrieveToolConfigurationsWithSpinner.startAsyncSpinnerWithPromise();
 }
 
 async function installAllToolDeps(
   toolsToBootStrap: string[],
   scaffyConfObj: ConfigSchema
 ) {
-  info(
-    `Installing dependencies for the following tools: ${normalizeArrForSentence(
-      toolsToBootStrap
-    )}`
-  );
-
-  const fooOne = aggregateToolDependencies(performDepsInstallation);
-  await fooOne(toolsToBootStrap, scaffyConfObj);
+  const installAggregateToolDeps = aggregateToolDependencies(performDepsInstallation);
+  await installAggregateToolDeps(toolsToBootStrap, scaffyConfObj);
 }
 
 async function performDepsInstallation(depsMap: DepsMap, installFlags: string[] = []) {
@@ -56,8 +70,6 @@ async function performDepsInstallation(depsMap: DepsMap, installFlags: string[] 
 
   const installFuncForAllDeps = installationTemplate(depsInstallFunc, devDepsInstallFunc);
   await installFuncForAllDeps();
-
-  return success('Dependencies and DevDependencies installed!');
 }
 
 type InstallationFn = () => Promise<void>;
@@ -142,7 +154,8 @@ async function doesPkgExistInNPMRegistry(pkgName: string): Promise<boolean> {
 }
 
 async function installDependencies(depNames: string[], npmInstallFlags: string[] = []) {
-  if (isEmpty.array(depNames)) return error(`No dependencies to install. Skipping...`);
+  if (isEmpty.array(depNames)) return
+
   await $`npm i ${npmInstallFlags} ${depNames}`;
 }
 
@@ -159,8 +172,6 @@ async function retrieveToolConfigurations(
 }
 
 async function retrieveIndividualConfigs(toolName: string, toolConfObj: ConfigEntry) {
-  info(`Retrieving configurations for ${toolName}...`);
-
   const projectRootDir = determineRootDirectory();
 
   const { toolConfigs } = extractScaffyConfigSections(toolConfObj);
@@ -171,27 +182,20 @@ async function retrieveIndividualConfigs(toolName: string, toolConfObj: ConfigEn
     copyFiles(localConfigurationPaths, projectRootDir),
   ]);
 
-  return installationResults;
+  await installationResults;
 }
 
 async function copyFiles(paths: string[], dest: string) {
-  if (isEmpty.array(paths)) return handleProcessErr('No paths to copy');
+  if (isEmpty.array(paths)) return;
 
   const resolvedFilesPaths = paths.map(filepath => resolveFilePath(filepath, dest));
   try {
-    info('Copying files....');
     const result = await $`cp -t ${dest} ${resolvedFilesPaths}`;
-    success('Files copied successfully');
 
     return result;
   } catch (err) {
-    return handleProcessErr('Could not copy files');
+    return error(`Could not copy one or more files: ${err}`, true);
   }
-}
-
-function handleProcessErr(msg: string) {
-  error(msg);
-  throw new Error(msg);
 }
 
 function resolveFilePath(filepath: string, from: string): string {

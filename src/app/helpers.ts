@@ -5,7 +5,7 @@ import outputHelp from '../cmds/help';
 import { ExitCodes } from '../constants';
 import { Dependencies } from '../compiler/types';
 import { fs, $, globby } from 'zx';
-import { error, info, success, objSet } from '../utils';
+import { error, objSet } from '../utils';
 
 interface SamplePackageJson {
   readonly version: string;
@@ -63,10 +63,7 @@ export async function removeEntityAt(
   options: EntityRemovalOptions = defaultEntityRemovalOptions
 ) {
   try {
-    info(`Removing ${entityName}....`);
     await fs.rm(entityPath, options);
-
-    success(`${entityName} removed!`);
   } catch (err) {
     error(`Error occurred while trying to remove ${entityName}`);
     error((err as Error).message);
@@ -118,9 +115,7 @@ async function rewriteExistingPackageJson(
   newPackageJsonData: SamplePackageJson
 ) {
   try {
-    info(`Rewriting ${packageJsonPath}...`);
     await fsPromise.writeFile(packageJsonPath, JSON.stringify(newPackageJsonData));
-    return success(`${packageJsonPath} rewritten successfully`);
   } catch (err) {
     error('Failed to update package.json file');
     error(`The following error occurred: ${err}`);

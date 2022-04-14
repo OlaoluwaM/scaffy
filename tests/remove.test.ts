@@ -94,7 +94,7 @@ test('Should make sure remove command deletes tool dependencies and configs', as
   const toolsToSetup = ['zod', 'jest'].concat(toolNamesInConfig);
 
   // Act
-  await remove(toolsToSetup, PathTo.SCAFFY_CONFIG);
+  await remove(PathTo.SCAFFY_CONFIG, toolsToSetup);
   const toolRemovalBooleanMap = await generateRemovalResultBooleanVectorFromToolNameArr(
     toolNamesInConfig
   );
