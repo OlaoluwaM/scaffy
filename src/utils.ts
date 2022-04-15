@@ -1,20 +1,21 @@
+import fs from 'fs/promises';
 import path from 'path';
 
 import { chalk } from 'zx';
 import { oraPromise } from 'ora';
-import { AnyObject, Primitive } from './compiler/types';
-import { ErrorHook, ERROR_HOOK, LEFT_PADDING_SIZE } from './constants';
+import { AnyObject, FilePath, Primitive } from './compiler/types';
+import { ErrorHook, ERROR_HOOK, DEFAULT_LEFT_PADDING_SIZE } from './constants';
 
-export function info(msg: string) {
-  console.info(addSpacesToString(chalk.whiteBright.bold(msg), LEFT_PADDING_SIZE));
+export function info(msg: string, leftPaddingSize = DEFAULT_LEFT_PADDING_SIZE) {
+  console.info(addSpacesToString(chalk.whiteBright.bold(msg), leftPaddingSize));
 }
 
 export function success(msg: string) {
-  console.log(addSpacesToString(chalk.greenBright.bold(msg), LEFT_PADDING_SIZE));
+  console.log(addSpacesToString(chalk.greenBright.bold(msg), DEFAULT_LEFT_PADDING_SIZE));
 }
 
-export function error(msg: string, shouldThrow: boolean = false) {
-  console.error(addSpacesToString(chalk.red.bold(msg), LEFT_PADDING_SIZE));
+export function error(msg: string, shouldThrow = false) {
+  console.error(addSpacesToString(chalk.red.bold(msg), DEFAULT_LEFT_PADDING_SIZE));
   if (shouldThrow) throw new Error(msg);
 }
 
@@ -173,7 +174,34 @@ export const valueIs = {
   true(val: unknown): val is true {
     return val === true;
   },
+
+  async aFile(val: string): Promise<(value: string) => asserts value is FilePath> {
+    let errMsg: string | undefined;
+
+    try {
+      const status = await fs.stat(val);
+      if (!status.isFile()) throw new TypeError(`${val} is not a file`);
+    } catch (err) {
+      errMsg = err instanceof TypeError ? err.message : (err as string);
+    }
+
+    return (value: string) => {
+      const thereWasAValidationError = !!errMsg;
+      let innerErrMsg: string | undefined;
+
+      if (value !== val) {
+        innerErrMsg =
+          "The returned function's argument must equal the argument passed into the initial async function call";
+      } else if (thereWasAValidationError) {
+        innerErrMsg = errMsg;
+      }
+
+      if (innerErrMsg) throw new TypeError(innerErrMsg);
+    };
+  },
 };
+
+export type FileAssertionFn = Awaited<ReturnType<typeof valueIs.aFile>>;
 
 export const isEmpty = {
   obj(possiblyEmptyObj: AnyObject): boolean {

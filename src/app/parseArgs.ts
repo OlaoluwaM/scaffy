@@ -1,12 +1,14 @@
 import path from 'path';
 import prompts from 'prompts';
 
-import { EnumKeys } from '../compiler/types';
+import { EnumKeys, FilePath } from '../compiler/types';
 import { SCAFFY_CONFIG_GLOB, ExitCodes } from '../constants';
 import { genericErrorHandler, searchForFile } from './helpers';
 import {
   pipe,
+  valueIs,
   filterOutPaths,
+  FileAssertionFn,
   includedInCollection,
   extractSetFromCollection,
 } from '../utils';
@@ -133,7 +135,25 @@ async function extractPathToConfFromCliArgs(cliArgs: string[]): Promise<string> 
   if (indexOfPathOption === -1) return await getDesiredScaffyConfigMatch();
 
   const indexOfActualPath = indexOfPathOption + 1;
-  return cliArgs[indexOfActualPath];
+  const configPath = cliArgs[indexOfActualPath];
+
+  // NOTE: I did not move this to it's own function because doing so would have lost the type assertion on configPath
+  // NOTE: Unfortunately, async type assertions are not supported in TS
+  // The one below is a workaround with higher-order functions
+
+  try {
+    const fileAssertionFn: FileAssertionFn = await valueIs.aFile(configPath);
+    fileAssertionFn(configPath);
+  } catch {
+    const { IS_TEST = false } = process.env;
+    const msg = `Looks like ${configPath} does not point to a valid config`;
+
+    if (IS_TEST) throw new Error(msg);
+    genericErrorHandler(msg);
+  }
+
+  // Down-leveling FilePath type to string
+  return configPath;
 }
 
 async function getDesiredScaffyConfigMatch(

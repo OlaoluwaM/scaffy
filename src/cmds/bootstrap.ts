@@ -154,7 +154,7 @@ async function doesPkgExistInNPMRegistry(pkgName: string): Promise<boolean> {
 }
 
 async function installDependencies(depNames: string[], npmInstallFlags: string[] = []) {
-  if (isEmpty.array(depNames)) return
+  if (isEmpty.array(depNames)) return;
 
   await $`npm i ${npmInstallFlags} ${depNames}`;
 }
@@ -190,11 +190,9 @@ async function copyFiles(paths: string[], dest: string) {
 
   const resolvedFilesPaths = paths.map(filepath => resolveFilePath(filepath, dest));
   try {
-    const result = await $`cp -t ${dest} ${resolvedFilesPaths}`;
-
-    return result;
+    await $`cp -t ${dest} ${resolvedFilesPaths}`;
   } catch (err) {
-    return error(`Could not copy one or more files: ${err}`, true);
+    error(`Could not copy one or more files: ${err}`, true);
   }
 }
 

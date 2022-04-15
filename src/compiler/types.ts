@@ -24,3 +24,5 @@ export type ToolName = string & { _type: 'tool' };
 export type AnyFunction = (...args: any[]) => any;
 
 export type EnumKeys<E> = keyof E;
+
+export type FilePath = string & { _type: 'file' };
