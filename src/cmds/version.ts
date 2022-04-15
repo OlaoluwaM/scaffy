@@ -10,5 +10,5 @@ export default async function outPutCliVersion() {
   );
 
   const { version } = __internalPackageJSON;
-  info(`v${version}`);
+  info(`v${version}`, 0);
 }
