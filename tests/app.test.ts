@@ -8,11 +8,16 @@ import { fs as fsExtra } from 'zx';
 import { ObjectValidator } from '../src/lib/schema-validator';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { jest, describe, test, expect, beforeEach } from '@jest/globals';
-import { doAllFilesExist, isSuccessfulPromise, didAllPromisesSucceed } from './helpers';
 import {
   CONFIG_ENTRY_SCHEMA,
   default as parseScaffyConfig,
 } from '../src/app/parseConfig';
+import {
+  doAllFilesExist,
+  append,
+  isSuccessfulPromise,
+  didAllPromisesSucceed,
+} from './helpers';
 import {
   ParsedArguments,
   sortOutRawCliArgs,
@@ -21,15 +26,24 @@ import {
 } from '../src/app/parseArgs';
 
 describe('Tests for CLI arguments parsing', () => {
-  const noThrowCases: [string, [CommandsApiString, ...string[]], ParsedArguments][] = [
+  const PATH_TO_SAMPLE_CONFIGS = './sample-scaffy-configs';
+  const appendSampleConfigDirPath = append.bind(null, `${PATH_TO_SAMPLE_CONFIGS}/`);
+
+  const noThrowCases: [
+    string,
+    [CommandsApiString, ...string[]],
+    ParsedArguments,
+    boolean
+  ][] = [
     [
       'with valid arguments',
-      ['b', 'eslint', 'react', '-c', '../dest/scaffy.json'],
+      ['b', 'eslint', 'react', '-c', appendSampleConfigDirPath('sampleOne.scaffy.json')],
       {
         command: 'b',
         tools: ['eslint', 'react'],
-        pathToScaffyConfig: '../dest/scaffy.json',
+        pathToScaffyConfig: appendSampleConfigDirPath('sampleOne.scaffy.json'),
       },
+      false,
     ],
     [
       'with defaults handled properly',
@@ -39,33 +53,59 @@ describe('Tests for CLI arguments parsing', () => {
         tools: ['react', '@babel/core', 'typescript'],
         pathToScaffyConfig: path.relative('./', `./local-configs/test.scaffy.json`),
       },
+      false,
     ],
     [
       'with no tools',
-      ['bootstrap', '--config', '../something/ts.scaffy.json'],
+      ['bootstrap', '--config', appendSampleConfigDirPath('sampleTwo.scaffy.json')],
       {
         command: 'bootstrap',
         tools: [],
-        pathToScaffyConfig: '../something/ts.scaffy.json',
+        pathToScaffyConfig: appendSampleConfigDirPath('sampleTwo.scaffy.json'),
       },
+      false,
     ],
     [
       'with multiple config options passed',
-      ['b', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      [
+        'b',
+        '-c',
+        appendSampleConfigDirPath('sampleThree.scaffy.json'),
+        '-c',
+        '../some2/scaffy.json',
+      ],
       {
         command: 'b',
         tools: [],
-        pathToScaffyConfig: './some/scaffy.json',
+        pathToScaffyConfig: appendSampleConfigDirPath('sampleThree.scaffy.json'),
       },
+      false,
+    ],
+    [
+      'but exit on invalid config argument',
+      ['b', '-c', 'tool1'],
+      {
+        command: 'b',
+        tools: [],
+        pathToScaffyConfig: '',
+      },
+      true,
     ],
     [
       'with help alias and some other arguments',
-      ['-h', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      [
+        '-h',
+        '-c',
+        appendSampleConfigDirPath('sampleFour.scaffy.json'),
+        '-c',
+        '../some2/scaffy.json',
+      ],
       {
         command: '-h',
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with help alias only',
@@ -75,15 +115,23 @@ describe('Tests for CLI arguments parsing', () => {
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with help command and some other arguments',
-      ['--help', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      [
+        '--help',
+        '-c',
+        appendSampleConfigDirPath('sampleFour.scaffy.json'),
+        '-c',
+        '../some2/scaffy.json',
+      ],
       {
         command: '--help',
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with help command only',
@@ -93,15 +141,23 @@ describe('Tests for CLI arguments parsing', () => {
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with version alias and some other arguments',
-      ['-v', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      [
+        '-v',
+        '-c',
+        appendSampleConfigDirPath('sampleFive.scaffy.json'),
+        '-c',
+        '../some2/scaffy.json',
+      ],
       {
         command: '-v',
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with version alias only',
@@ -111,15 +167,23 @@ describe('Tests for CLI arguments parsing', () => {
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with version command and some other arguments',
-      ['--version', '-c', './some/scaffy.json', '-c', '../some2/scaffy.json'],
+      [
+        '--version',
+        '-c',
+        appendSampleConfigDirPath('sampleFive.scaffy.json'),
+        '-c',
+        '../some2/scaffy.json',
+      ],
       {
         command: '--version',
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
     [
       'with version command only',
@@ -129,22 +193,30 @@ describe('Tests for CLI arguments parsing', () => {
         tools: [],
         pathToScaffyConfig: '',
       },
+      false,
     ],
   ];
 
   test.each(noThrowCases)(
     'Should ensure cli args are parsed correctly %s',
-    async (str, sampleCliArgs, desiredOutputObj) => {
+    async (str, sampleCliArgs, desiredOutputObj, willThrowErr) => {
       // Arrange
       if (str.includes('defaults')) {
         prompt.inject([(desiredOutputObj as ParsedArguments).pathToScaffyConfig]);
       }
 
-      // Act
-      const output = await parseArguments(sortOutRawCliArgs(sampleCliArgs));
+      if (!willThrowErr) {
+        // Act
+        const output = await parseArguments(sortOutRawCliArgs(sampleCliArgs));
 
-      // Assert
-      expect(output).toEqual(desiredOutputObj);
+        // Assert
+        expect(output).toEqual(desiredOutputObj);
+      } else {
+        // Assert
+        await expect(
+          parseArguments(sortOutRawCliArgs(sampleCliArgs))
+        ).rejects.toThrowError();
+      }
     }
   );
 
@@ -153,7 +225,7 @@ describe('Tests for CLI arguments parsing', () => {
     const argsToParse = sortOutRawCliArgs([
       'oof',
       '-c',
-      './some/scaffy.json',
+      appendSampleConfigDirPath('sampleFive.scaffy.json'),
       '-c',
       '../some/scaffy.json',
     ]);

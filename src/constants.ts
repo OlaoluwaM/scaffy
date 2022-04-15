@@ -21,4 +21,4 @@ export enum ExitCodes {
   COMMAND_NOT_FOUND = 127,
 }
 
-export const LEFT_PADDING_SIZE = 3
+export const DEFAULT_LEFT_PADDING_SIZE = 3

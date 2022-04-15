@@ -81,7 +81,7 @@ export async function doesPathExist(entityPath: string): Promise<boolean> {
 
 export function genericErrorHandler(
   msg: string,
-  displayHelp = true,
+  displayHelp = false,
   exitCode = ExitCodes.GENERAL
 ): never {
   error(msg);
