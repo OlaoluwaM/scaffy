@@ -27,3 +27,7 @@ export async function doAllFilesExist(
     })
   );
 }
+
+export function append(partA: string, partB: string): string {
+  return `${partA}${partB}`;
+}

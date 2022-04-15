@@ -37,8 +37,7 @@ export function CommandTemplate(restOfCommand: RestOfCommandFn) {
 function exitIfThereAreNoToolsToBootstrap(toolsInScaffyConfig: string[]) {
   if (!isEmpty.array(toolsInScaffyConfig)) return;
   genericErrorHandler(
-    'Seems like non of those tools were specified in your scaffy config',
-    false
+    'Seems like non of those tools were specified in your scaffy config'
   );
 }
 

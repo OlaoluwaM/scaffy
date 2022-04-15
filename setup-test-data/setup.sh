@@ -9,10 +9,14 @@ echo "Seting up test data directory...."
 
 echo "Recreating test data directory"
 mkdir "$DATA_DIR"
-mkdir $DATA_DIR/{for-learning,for-remote-downloads,for-bootstrap-cmd,for-remove-cmd,local-configs,other-data}
+mkdir $DATA_DIR/{for-learning,for-remote-downloads,for-bootstrap-cmd,for-remove-cmd,sample-scaffy-configs,local-configs,other-data}
 
 echo "Setting up sample local configurations for testing"
 touch $DATA_DIR/local-configs/{.prettierrc,stub.js,sample.ts,another-file.ts,main.rs,hello.rs,some.js,help.ts,xxt.ts,srr.ts,m.ts}
+
+echo "Setting up sample sample scaffy config directory for testing"
+touch $DATA_DIR/sample-scaffy-configs/{sampleOne,sampleTwo,sampleThree,sampleFour,sampleFive}.scaffy.json
+echo "{}" | tee -a $DATA_DIR/sample-scaffy-configs/{sampleOne,sampleTwo,sampleThree,sampleFour,sampleFive}.scaffy.json | cat 1>/dev/null
 
 for DIR in "for-bootstrap-cmd" "for-remove-cmd"; do
   touch $DATA_DIR/$DIR/{sample.scaffy.json,package.json}

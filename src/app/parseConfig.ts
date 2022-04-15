@@ -1,6 +1,6 @@
-import { ExitCodes } from '../constants';
 import { fs as fsExtra } from 'zx';
-import { error, isEmpty, rawTypeOf, valueIs } from '../utils';
+import { genericErrorHandler } from './helpers';
+import { isEmpty, rawTypeOf, valueIs } from '../utils';
 import { AnyObject, ConfigEntry, ConfigSchema } from '../compiler/types';
 import {
   ArrayValidator,
@@ -30,8 +30,7 @@ export default async function parseScaffyConfig(path: string): Promise<ConfigSch
         ? err.message
         : 'Looks like your are missing a `scaffy.json` file in the root directory of your project';
 
-    error(message);
-    return process.exit(ExitCodes.GENERAL);
+    return genericErrorHandler(message);
   }
 }
 
