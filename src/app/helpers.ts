@@ -120,7 +120,7 @@ async function rewriteExistingPackageJson(
     error('Failed to update package.json file');
     error(`The following error occurred: ${err}`);
 
-    return process.exit(ExitCodes.GENERAL);
+    process.exit(ExitCodes.GENERAL);
   }
 }
 
