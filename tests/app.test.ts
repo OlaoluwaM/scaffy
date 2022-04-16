@@ -4,10 +4,18 @@ import download from '../src/app/downloadFile';
 
 import { ExitCodes } from '../src/constants';
 import { ConfigEntry } from '../src/compiler/types';
-import { fs as fsExtra } from 'zx';
 import { ObjectValidator } from '../src/lib/schema-validator';
+import { cd, fs as fsExtra } from 'zx';
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import {
+  jest,
+  describe,
+  test,
+  expect,
+  beforeEach,
+  beforeAll,
+  afterAll,
+} from '@jest/globals';
 import {
   CONFIG_ENTRY_SCHEMA,
   default as parseScaffyConfig,
@@ -24,6 +32,7 @@ import {
   CommandsApiString,
   default as parseArguments,
 } from '../src/app/parseArgs';
+import { testDataDir } from './test-setup';
 
 describe('Tests for CLI arguments parsing', () => {
   const PATH_TO_SAMPLE_CONFIGS = './sample-scaffy-configs';
@@ -201,6 +210,7 @@ describe('Tests for CLI arguments parsing', () => {
     'Should ensure cli args are parsed correctly %s',
     async (str, sampleCliArgs, desiredOutputObj, willThrowErr) => {
       // Arrange
+      console.log({ p: process.cwd() });
       if (str.includes('defaults')) {
         prompt.inject([(desiredOutputObj as ParsedArguments).pathToScaffyConfig]);
       }
@@ -222,6 +232,7 @@ describe('Tests for CLI arguments parsing', () => {
 
   test('Should exit on invalid command', async () => {
     // Arrange
+    console.log({ cwd: process.cwd() });
     const argsToParse = sortOutRawCliArgs([
       'oof',
       '-c',
@@ -259,7 +270,6 @@ describe('Tests for downloading remote configuration', () => {
     await fsExtra.emptyDir(destinationDir);
   });
 
-  // TODO: First case 'curl' fails on initial run
   test.each([['curl'], ['wget'], ['no specified command']])(
     'Should make sure that all remote configs can be downloaded with %s',
     async curlOrWget => {
@@ -302,7 +312,16 @@ describe('Tests for downloading remote configuration', () => {
 });
 
 describe('Tests for scaffy schema parsing', () => {
-  const configDir = `./other-data`;
+  const configDir = `../other-data`;
+  const previousCWD = process.cwd();
+
+  beforeAll(async () => {
+    await cd('./for-remove-cmd');
+  });
+
+  afterAll(async () => {
+    await cd(previousCWD);
+  });
 
   test('That parser succeeds with valid config file ', async () => {
     // Arrange
@@ -355,5 +374,22 @@ describe('Tests for scaffy schema parsing', () => {
 
     // Assert
     expect(allConfigEntriesAreNormalized).toBe(true);
+  });
+
+  test('Should exit if not in valid directory', async () => {
+    // Arrange
+    await cd(testDataDir);
+
+    const configFilePath = `./other-data/partial-invalid-config-entries.scaffy.json`;
+
+    const mockExit = jest
+      .spyOn(process, 'exit')
+      .mockImplementationOnce(() => '1' as never);
+
+    // Act
+    await parseScaffyConfig(configFilePath);
+
+    // Assert
+    expect(mockExit).toHaveBeenCalledWith(ExitCodes.GENERAL);
   });
 });

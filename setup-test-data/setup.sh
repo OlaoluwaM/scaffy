@@ -50,6 +50,7 @@ cat <<EOL >"${DATA_DIR}/for-remove-cmd/package.json"
     "react": "*",
     "vite": "*",
     "ts-node": "*",
+    "@xstate/react": "*",
     "nodemon": "*",
     "vue": "*"
   },
@@ -57,7 +58,9 @@ cat <<EOL >"${DATA_DIR}/for-remove-cmd/package.json"
     "eslint": "*",
     "jest": "*",
     "xstate": "*",
+    "typescript": "*",
     "zod": "*",
+    "latest": "*",
     "webpack-dev-server": "*",
     "webpack": "*"
   },
