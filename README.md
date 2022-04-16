@@ -53,7 +53,7 @@ favourite tools using your custom configurations.
 description; e.g.,
 -->
 
-<!-- ![Demo](./assets/scaffy.demo.webm) -->
+<!-- ![Demo](./assets/scaffy.demo.mp4) -->
 
 <!-- TODO Add video demo here -->
 
