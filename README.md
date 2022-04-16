@@ -46,13 +46,14 @@ this project is trying to accomplish and why it matters.
 Describe the problem(s) this project solves.
 Describe how this software can improve the lives of its audience. -->
 
-Scaffy is a CLI tool that allows you to bootstrap your projects with your favorite tools
-using your custom configuration.
+Scaffy is a framework agnostic CLI Utility for bootstrapping your JS projects with your
+favourite tools using your custom configurations.
 
 <!-- **Screenshot**: If the software has visual components, place a screenshot after the
 description; e.g.,
+-->
 
-![](https://raw.githubusercontent.com/cfpb/open-source-project-template/main/screenshot.png) -->
+<!-- ![Demo](./assets/scaffy.demo.mp4) -->
 
 <!-- TODO Add video demo here -->
 

@@ -8,6 +8,7 @@ import {
   updatePackageJsonDeps,
   determineRootDirectory,
   parseProjectDependencies,
+  removeVersionInfoFromDepNames,
 } from '../app/helpers';
 import {
   info,
@@ -97,13 +98,16 @@ function determineUninstallationFnToUse(depsMap: DepsMap) {
 
 async function uninstallDependencies(depNames: string[]) {
   if (isEmpty.array(depNames)) return;
+  const depNamesWithoutVersionInfo = removeVersionInfoFromDepNames(depNames);
 
-  await $`npm un ${depNames}`;
+  await $`npm un ${depNamesWithoutVersionInfo}`;
 }
 
 async function mockUninstallOfDependencies(depsMap: DepsMap) {
   const PACKAGE_JSON_PATH = './package.json';
-  const { depNames, devDepNames } = depsMap;
+
+  const depNames = removeVersionInfoFromDepNames(depsMap.depNames);
+  const devDepNames = removeVersionInfoFromDepNames(depsMap.devDepNames);
 
   const filteredProjectDeps = await Promise.all([
     removeToolDepsFromProjectDeps(depNames, 'dependencies', PACKAGE_JSON_PATH),
@@ -115,7 +119,7 @@ async function mockUninstallOfDependencies(depsMap: DepsMap) {
   const filteredDepObj = generateDepsObj(filteredDepNames);
   const filteredDevDepObj = generateDepsObj(filteredDevDepNames);
 
-  // Done sequentially since we are writing to the same file
+  // NOTE: Done sequentially since we are writing to the same file
   await updatePackageJsonDeps(PACKAGE_JSON_PATH, 'dependencies', filteredDepObj);
   await updatePackageJsonDeps(PACKAGE_JSON_PATH, 'devDependencies', filteredDevDepObj);
 }

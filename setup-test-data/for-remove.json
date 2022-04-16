@@ -19,8 +19,8 @@
   },
 
   "vue": {
-    "depNames": ["ts-node", "nodemon", "vite"],
-    "devDepNames": ["xstate"],
+    "depNames": ["ts-node", "nodemon", "vite", "@xstate/react"],
+    "devDepNames": ["xstate@latest", "typescript@latest", "latest@latest"],
     "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/createDesinationsFile.sh",
       "https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/README.md"

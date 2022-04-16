@@ -302,6 +302,14 @@ export function addSpacesToString(text: string, numberOfSpaces: number): string 
   return spacesWithText;
 }
 
+export function isSemverString(possibleSemVerString: string): boolean {
+  // Gotten From https://github.com/sindresorhus/semver-regex/blob/main/index.js
+  const SEMVER_REGEX =
+    /(?:(?<=^v?|\sv?)(?:(?:0|[1-9]\d{0,9})\.){2}(?:0|[1-9]\d{0,9})(?:-(?:0|[1-9]\d*?|[\da-z-]*?[a-z-][\da-z-]*?){0,100}(?:\.(?:0|[1-9]\d*?|[\da-z-]*?[a-z-][\da-z-]*?))*?){0,100}(?:\+[\da-z-]+?(?:\.[\da-z-]+?)*?){0,100}\b){1,200}|latest/;
+
+  return SEMVER_REGEX.test(possibleSemVerString);
+}
+
 // NOTE: Copy on write ops
 export function objSet<
   Obj extends AnyObject,
