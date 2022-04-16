@@ -11,7 +11,6 @@ import {
   removeVersionInfoFromDepNames,
 } from '../app/helpers';
 import {
-  info,
   error,
   isEmpty,
   AsyncProcessSpinner,

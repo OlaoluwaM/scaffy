@@ -3,7 +3,7 @@ import download from '../app/downloadFile';
 
 import { $ } from 'zx';
 import { ConfigEntry, ConfigSchema, Dependencies } from '../compiler/types';
-import { error, isEmpty, AsyncProcessSpinner, info } from '../utils';
+import { error, isEmpty, AsyncProcessSpinner } from '../utils';
 import { DepProps, updatePackageJsonDeps, determineRootDirectory } from '../app/helpers';
 import {
   DepsMap,
