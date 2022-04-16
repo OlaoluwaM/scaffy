@@ -1,2 +1,4 @@
 node_modules
 dist
+src/lib/schema-validator.ts
+src/lib/schema-validator-oop.ts

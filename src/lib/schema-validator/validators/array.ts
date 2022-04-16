@@ -8,7 +8,6 @@ import {
   ValidationPath,
   ValidatorInput,
   ValidationResultError,
-  BaseValidatorOptions,
 } from '../types';
 
 export default function ArrayValidator<ElemType>(
@@ -34,7 +33,7 @@ function arrayValidationLogic<ElemType>(
   vI: ValidatorInput<ElemType[]>,
   elementValidator: Validator<ElemType>
 ) {
-  return (normalizedValidationOptions: BaseValidatorOptions) => {
+  return () => {
     const { value, path: currentPath } = vI;
 
     const errorsDiscovered = determineArrValidity(

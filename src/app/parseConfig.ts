@@ -63,6 +63,7 @@ function validateRawConfig(rawConfig: unknown): asserts rawConfig is RawConfigSc
 function normalizeRawConfigEntries(rawConfig: RawConfigSchema): ConfigSchema {
   const rawConfigEntries = Object.entries(rawConfig);
   const rawConfigEntriesWithoutEmptyEntries = rawConfigEntries.filter(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ([_, entry]) => rawTypeOf(entry) === 'object' && !isEmpty.obj(entry)
   );
 

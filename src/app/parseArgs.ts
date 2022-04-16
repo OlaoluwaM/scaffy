@@ -1,7 +1,7 @@
 import path from 'path';
 import prompts from 'prompts';
 
-import { EnumKeys, FilePath } from '../compiler/types';
+import { EnumKeys } from '../compiler/types';
 import { SCAFFY_CONFIG_GLOB, ExitCodes } from '../constants';
 import { genericErrorHandler, searchForFile } from './helpers';
 import {
