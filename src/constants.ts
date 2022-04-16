@@ -19,6 +19,16 @@ export enum ExitCodes {
   OK = 0,
   GENERAL = 1,
   COMMAND_NOT_FOUND = 127,
+  KILLED = 128,
 }
 
-export const DEFAULT_LEFT_PADDING_SIZE = 3
+export const DEFAULT_LEFT_PADDING_SIZE = 3;
+export enum KILL_SIGNAL {
+  INTERRUPT = 'SIGINT',
+  TERMINATE = 'SIGTERM',
+}
+
+export enum KILL_CODE_NUM_MAP {
+  SIGINT = 2,
+  SIGTERM = 15,
+}

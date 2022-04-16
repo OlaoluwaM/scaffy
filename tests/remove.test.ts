@@ -8,6 +8,7 @@ import { ConfigEntry, ConfigSchema } from '../src/compiler/types';
 import { default as remove, convertToAbsolutePath } from '../src/cmds/remove';
 import {
   doesPathExist,
+  removeVersionInfoFromDepNames,
   parseProjectDependencies,
   ProjectDependencies,
 } from '../src/app/helpers';
@@ -58,14 +59,16 @@ function haveToolDepsBeenUninstalled(
   const projectDepNames = Object.keys(projectDependencies.dependencies);
   const projectDevDepNames = Object.keys(projectDependencies.devDependencies);
 
+  const EDGE_CASES = ['', 'typescript@latest', 'latest@latest'];
+
   const areToolDepsNoLongeSubsetOfProjectDeps = !isSubset(
-    projectDepNames,
-    toolEntryDepNames
+    projectDepNames.concat(EDGE_CASES),
+    removeVersionInfoFromDepNames(toolEntryDepNames)
   );
 
   const areToolDevDepsNoLongeSubsetOfProjectDevDeps = !isSubset(
-    projectDevDepNames,
-    toolEntryDevDepNames
+    projectDevDepNames.concat(EDGE_CASES),
+    removeVersionInfoFromDepNames(toolEntryDevDepNames)
   );
 
   return (

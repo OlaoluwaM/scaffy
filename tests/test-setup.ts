@@ -10,7 +10,7 @@ process.env.IS_TEST = 'true';
 
 // eslint-disable-next-line camelcase
 const { __dirname: __test_dirname } = getAbsolutePathsForFile(import.meta.url);
-const testDataDir = path.join(__test_dirname, './test-data/');
+export const testDataDir = path.join(__test_dirname, './test-data/');
 
 beforeAll(() => {
   process.chdir(testDataDir);

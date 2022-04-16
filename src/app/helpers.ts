@@ -5,7 +5,7 @@ import outputHelp from '../cmds/help';
 import { ExitCodes } from '../constants';
 import { Dependencies } from '../compiler/types';
 import { fs, $, globby } from 'zx';
-import { error, objSet } from '../utils';
+import { error, isSemverString, objSet } from '../utils';
 
 interface SamplePackageJson {
   readonly version: string;
@@ -122,4 +122,22 @@ async function rewriteExistingPackageJson(
 
     return process.exit(ExitCodes.GENERAL);
   }
+}
+
+export function removeVersionInfoFromDepNames(depNames: string[]): string[] {
+  const depNamesWithoutVersionInfo = depNames.map(removeVersionInfoFromDepName);
+  return depNamesWithoutVersionInfo;
+}
+
+function removeVersionInfoFromDepName(depName: string): string {
+  const indexOfAtChar = depName.indexOf('@');
+  if (indexOfAtChar === -1) return depName;
+
+  const substringAfterAtChar = depName.slice(indexOfAtChar + 1);
+  const isSubstringASemVerString = isSemverString(substringAfterAtChar);
+
+  if (!isSubstringASemVerString) return depName;
+
+  const substringBeforeAtChar = depName.slice(0, indexOfAtChar);
+  return substringBeforeAtChar;
 }

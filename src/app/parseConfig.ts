@@ -1,6 +1,6 @@
 import { fs as fsExtra } from 'zx';
-import { genericErrorHandler } from './helpers';
-import { isEmpty, rawTypeOf, valueIs } from '../utils';
+import { doesPathExist, genericErrorHandler } from './helpers';
+import { addException, isEmpty, rawTypeOf, valueIs } from '../utils';
 import { AnyObject, ConfigEntry, ConfigSchema } from '../compiler/types';
 import {
   ArrayValidator,
@@ -20,6 +20,8 @@ export const CONFIG_ENTRY_SCHEMA: InterfaceToValidatorSchema<ConfigEntry> = {
 
 export default async function parseScaffyConfig(path: string): Promise<ConfigSchema> {
   try {
+    await wasCommandInvokedInRootOfJSProjectDir();
+
     const rawConfig = (await fsExtra.readJSON(path)) as unknown;
     validateRawConfig(rawConfig);
     const validConfigObj = normalizeRawConfigEntries(rawConfig);
@@ -31,6 +33,18 @@ export default async function parseScaffyConfig(path: string): Promise<ConfigSch
         : 'Looks like your are missing a `scaffy.json` file in the root directory of your project';
 
     return genericErrorHandler(message);
+  }
+}
+
+async function wasCommandInvokedInRootOfJSProjectDir() {
+  const requiredEntities = ['package.json', 'package-lock.json', 'node_modules'] as const;
+
+  const doesPathExistWithExceptionOnFalsy = addException(doesPathExist);
+
+  try {
+    await doesPathExistWithExceptionOnFalsy(requiredEntities[0]);
+  } catch (err) {
+    throw new Error('Please run in the root directory of your project');
   }
 }
 
