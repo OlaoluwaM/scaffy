@@ -93,7 +93,7 @@ should be frequently tested to ensure reliability. Alternatively, link to a sepa
 [INSTALL](INSTALL.md) document. -->
 
 ```bash
-  npm i -g scaffy
+  npm i -g @olaolum/scaffy
 ```
 
 ## Configuration
