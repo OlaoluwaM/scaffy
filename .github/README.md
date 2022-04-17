@@ -53,9 +53,9 @@ favorite tools using your custom configurations.
 description; e.g.,
 -->
 
-<!-- ![Demo](./assets/scaffy.demo.mp4) -->
 
 <!-- TODO Add video demo here -->
+![Demo](./../demo/scaffy.demo.gif)
 
 ### Built with :boxing_glove:
 
