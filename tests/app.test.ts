@@ -257,10 +257,10 @@ describe('Tests for downloading remote configuration', () => {
   // Arrange All
   const sampleUrls = [
     'https://raw.githubusercontent.com/OlaoluwaM/dotfiles/master/others/nativefy.sh',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/.eslintignore',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/jest.config.js',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/craco.config.js',
-    'https://raw.githubusercontent.com/OlaoluwaM/configs/main/postcss.config.js',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/.eslintignore',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/jest.config.js',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/craco.config.js',
+    'https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/postcss.config.js',
   ];
 
   const SUB_TEST_DIR_FOR_TEST = 'for-remote-downloads' as const;
