@@ -3,7 +3,7 @@
     "depNames": ["eslint-plugin-react", "sss", "j"],
     "devDepNames": ["eslint", "jest", "zod"],
     "remoteConfigurationUrls": [
-      "https://raw.githubusercontent.com/OlaoluwaM/configs/main/typescript/.eslintrc.js"
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/typescript/.eslintrc.js"
     ],
     "localConfigurationPaths": ["../local-configs/.prettierrc"]
   },
