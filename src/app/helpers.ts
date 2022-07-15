@@ -2,10 +2,10 @@ import path from 'path';
 import fsPromise from 'fs/promises';
 import outputHelp from '../cmds/help';
 
-import { ExitCodes } from '../constants';
-import { Dependencies } from '../compiler/types';
+import { CONFIG_ENTRY_PROPS, ExitCodes } from '../constants';
+import { ConfigEntry, Dependencies } from '../compiler/types';
 import { fs, $, globby } from 'zx';
-import { error, isSemverString, objSet } from '../utils';
+import { error, includedInCollection, isSemverString, objSet } from '../utils';
 
 interface SamplePackageJson {
   readonly version: string;
@@ -140,4 +140,27 @@ function removeVersionInfoFromDepName(depName: string): string {
 
   const substringBeforeAtChar = depName.slice(0, indexOfAtChar);
   return substringBeforeAtChar;
+}
+
+export function mergeConfigEntries(
+  entryBeingExtended: ConfigEntry,
+  entryToExtendFrom: ConfigEntry,
+  specificKeysToMerge = [...CONFIG_ENTRY_PROPS]
+) {
+  const mergedObjectEntries = Object.entries(entryBeingExtended).map(entry => {
+    const [key] = entry;
+    if (!includedInCollection(specificKeysToMerge, key)) return entry;
+
+    const valueToExtendWith = entryToExtendFrom[key] ?? [];
+    const currentValuesToBeExtended = entryBeingExtended[key] ?? [];
+
+    const mergedValue = [
+      ...new Set([...valueToExtendWith, ...currentValuesToBeExtended]),
+    ];
+
+    return [key, mergedValue];
+  });
+
+  const mergedConfigEntry = Object.fromEntries(mergedObjectEntries);
+  return mergedConfigEntry;
 }

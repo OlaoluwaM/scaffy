@@ -1,8 +1,10 @@
 import ArrayValidator from './validators/array';
+import StringValidator from './validators/string';
 import ObjectValidator from './validators/object';
 
+import { Or } from './validators/predicate';
 import { InterfaceToValidatorSchema } from './types';
-import { StringValidator, NumberValidator } from './validators/primitives';
+import { NumberValidator } from './validators/primitives';
 
 export type { InterfaceToValidatorSchema };
-export { ArrayValidator, ObjectValidator, StringValidator, NumberValidator };
+export { ArrayValidator, ObjectValidator, StringValidator, NumberValidator, Or };

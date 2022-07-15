@@ -32,3 +32,10 @@ export enum KILL_CODE_NUM_MAP {
   SIGINT = 2,
   SIGTERM = 15,
 }
+
+export const CONFIG_ENTRY_PROPS = [
+  'depNames',
+  'devDepNames',
+  'localConfigurationPaths',
+  'remoteConfigurationUrls',
+] as const;

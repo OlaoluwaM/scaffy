@@ -1,0 +1,80 @@
+{
+  "parent": {
+    "depNames": ["react", "styled-components", "framer-motion"],
+    "devDepNames": ["typescript", "react-dom", "react-hot-toast"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/.babelrc.js"
+    ],
+    "localConfigurationPaths": ["../local-configs/main.rs", "../local-configs/sample.ts"]
+  },
+
+  "child-1": {
+    "extends": "parent",
+    "depNames": ["ramda"]
+  },
+
+  "child-2": {
+    "extends": "parent",
+    "depNames": ["yup"],
+    "devDepNames": ["zod"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/typescript/.eslintrc.js"
+    ],
+    "localConfigurationPaths": ["../local-configs/.prettierrc"]
+  },
+
+  "child-3": {
+    "extends": {
+      "from": "parent",
+      "merge": ["devDepNames", "remoteConfigurationUrls"]
+    },
+    "depNames": ["yup", "jest"],
+    "devDepNames": ["zod", "typescript", "fp-ts", "rambda"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/typescript/.eslintrc.js",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+    ],
+    "localConfigurationPaths": [
+      "../local-configs/.prettierrc",
+      "../local-configs/main.rs",
+      "../local-configs/sample.ts"
+    ]
+  },
+
+  "child-4": {
+    "extends": {
+      "from": "super2",
+      "merge": ["devDepNames", "remoteConfigurationUrls"]
+    },
+    "depNames": ["yup", "jest"],
+    "devDepNames": ["zod", "typescript", "fp-ts", "rambda"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/typescript/.eslintrc.js",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+    ],
+    "localConfigurationPaths": [
+      "../local-configs/.prettierrc",
+      "../local-configs/main.rs",
+      "../local-configs/sample.ts"
+    ]
+  },
+
+  "child-5": {
+    "extends": "child-5",
+    "depNames": ["yup", "jest"],
+    "devDepNames": ["zod", "typescript", "fp-ts", "rambda"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/typescript/.eslintrc.js",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+    ],
+    "localConfigurationPaths": [
+      "../local-configs/.prettierrc",
+      "../local-configs/main.rs",
+      "../local-configs/sample.ts"
+    ]
+  }
+}

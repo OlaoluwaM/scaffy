@@ -25,6 +25,7 @@ import {
   append,
   isSuccessfulPromise,
   didAllPromisesSucceed,
+  removeTrailingSlash,
 } from './helpers';
 import {
   ParsedArguments,
@@ -33,6 +34,7 @@ import {
   default as parseArguments,
 } from '../src/app/parseArgs';
 import { testDataDir } from './test-setup';
+import { pickObjPropsToAnotherObj } from '../src/utils';
 
 describe('Tests for CLI arguments parsing', () => {
   const PATH_TO_SAMPLE_CONFIGS = './sample-scaffy-configs';
@@ -210,7 +212,7 @@ describe('Tests for CLI arguments parsing', () => {
     'Should ensure cli args are parsed correctly %s',
     async (str, sampleCliArgs, desiredOutputObj, willThrowErr) => {
       // Arrange
-      console.log({ p: process.cwd() });
+
       if (str.includes('defaults')) {
         prompt.inject([(desiredOutputObj as ParsedArguments).pathToScaffyConfig]);
       }
@@ -232,7 +234,6 @@ describe('Tests for CLI arguments parsing', () => {
 
   test('Should exit on invalid command', async () => {
     // Arrange
-    console.log({ cwd: process.cwd() });
     const argsToParse = sortOutRawCliArgs([
       'oof',
       '-c',
@@ -264,7 +265,7 @@ describe('Tests for downloading remote configuration', () => {
   ];
 
   const SUB_TEST_DIR_FOR_TEST = 'for-remote-downloads' as const;
-  const destinationDir = `./${SUB_TEST_DIR_FOR_TEST}`;
+  const destinationDir = `${removeTrailingSlash(testDataDir)}/${SUB_TEST_DIR_FOR_TEST}`;
 
   beforeEach(async () => {
     await fsExtra.emptyDir(destinationDir);
@@ -312,7 +313,7 @@ describe('Tests for downloading remote configuration', () => {
 });
 
 describe('Tests for scaffy schema parsing', () => {
-  const configDir = `../other-data`;
+  const configDir = `${removeTrailingSlash(testDataDir)}/other-data`;
   const previousCWD = process.cwd();
 
   beforeAll(async () => {
@@ -376,11 +377,10 @@ describe('Tests for scaffy schema parsing', () => {
     expect(allConfigEntriesAreNormalized).toBe(true);
   });
 
-  test('Should exit if not in valid directory', async () => {
+  test('Should exit if not in valid root directory', async () => {
     // Arrange
-    await cd(testDataDir);
-
-    const configFilePath = `./other-data/partial-invalid-config-entries.scaffy.json`;
+    // await cd(testDataDir);
+    const configFilePath = `./partial-invalid-config-entries.scaffy.json`;
 
     const mockExit = jest
       .spyOn(process, 'exit')
@@ -391,5 +391,123 @@ describe('Tests for scaffy schema parsing', () => {
 
     // Assert
     expect(mockExit).toHaveBeenCalledWith(ExitCodes.GENERAL);
+  });
+});
+
+describe('Tests for extending one config from another', () => {
+  const parentEntryName = 'parent' as const;
+  const configDir = `${removeTrailingSlash(testDataDir)}/other-data`;
+  const configFilePath = `${configDir}/config-where-entries-extend.scaffy.json`;
+
+  function removeExtensionKey(configEntry: ConfigEntry): Omit<ConfigEntry, 'extends'> {
+    return pickObjPropsToAnotherObj(configEntry, ['extends'], true);
+  }
+
+  beforeAll(async () => {
+    await cd(configDir);
+  });
+
+  test('Should ensure configs can extend one another', async () => {
+    // Arrange
+    const childEntryName = 'child-1' as const;
+    const NUM_OF_VALUES_PRESENT_FOR_EACH_FIELD_ON_THE_CHILD_ENTRY = 1;
+
+    // Act
+    const parsedConfigObj = await parseScaffyConfig(configFilePath);
+    const parentConfig = parsedConfigObj[parentEntryName];
+    const childConfig = parsedConfigObj[childEntryName];
+
+    // Assert
+    expect(childConfig.devDepNames).toEqual(parentConfig.devDepNames);
+
+    expect(childConfig.remoteConfigurationUrls).toEqual(
+      parentConfig.remoteConfigurationUrls
+    );
+
+    expect(childConfig.localConfigurationPaths).toEqual(
+      parentConfig.localConfigurationPaths
+    );
+
+    expect(childConfig.depNames.length).toBe(
+      parentConfig.depNames.length +
+        NUM_OF_VALUES_PRESENT_FOR_EACH_FIELD_ON_THE_CHILD_ENTRY
+    );
+  });
+
+  test('Should ensure that an extending config entry will have its listed tools merged with the parent entries', async () => {
+    // Arrange
+    const childEntryName = 'child-2' as const;
+    const NUM_OF_VALUES_PRESENT_FOR_EACH_FIELD_ON_THE_CHILD_ENTRY = 1;
+
+    // Act
+    const parsedConfigObj = await parseScaffyConfig(configFilePath);
+
+    const parentConfig = removeExtensionKey(parsedConfigObj[parentEntryName]);
+    const childConfig = removeExtensionKey(parsedConfigObj[childEntryName]);
+
+    const childConfigEntryKeys = Object.keys(childConfig) as Exclude<
+      keyof ConfigEntry,
+      'extends'
+    >[];
+
+    // Assert
+    childConfigEntryKeys.forEach(childEntryKey => {
+      const childEntryValue = childConfig[childEntryKey];
+      const parentEntryValue = parentConfig[childEntryKey];
+
+      expect(childEntryValue).toHaveLength(
+        parentEntryValue.length + NUM_OF_VALUES_PRESENT_FOR_EACH_FIELD_ON_THE_CHILD_ENTRY
+      );
+    });
+  });
+
+  test('Should ensure that an extending entry can pick what it wants to extend, from a parent entry', async () => {
+    // Arrange
+    const rawConfigObj = await fsExtra.readJson(configFilePath);
+    const childEntryName = 'child-3' as const;
+
+    const rawChildConfig = removeExtensionKey(rawConfigObj[childEntryName]);
+    const fieldsToBeExtended = ['devDepNames', 'remoteConfigurationUrls'] as const;
+
+    const NUM_OF_VALUES_PRESENT_FOR_EACH_FIELD_ON_THE_CHILD_ENTRY = 3;
+
+    // Act
+    const parsedConfigObj = await parseScaffyConfig(configFilePath);
+    const parentConfig = removeExtensionKey(parsedConfigObj[parentEntryName]);
+    const childConfig = removeExtensionKey(parsedConfigObj[childEntryName]);
+
+    // Assert
+    fieldsToBeExtended.forEach(fieldName => {
+      const childEntryValue = childConfig[fieldName];
+      const parentEntryValue = parentConfig[fieldName];
+
+      expect(childEntryValue).toHaveLength(
+        parentEntryValue.length + NUM_OF_VALUES_PRESENT_FOR_EACH_FIELD_ON_THE_CHILD_ENTRY
+      );
+    });
+
+    expect(childConfig.depNames).toEqual(rawChildConfig.depNames);
+    expect(childConfig.localConfigurationPaths).toEqual(
+      rawChildConfig.localConfigurationPaths
+    );
+  });
+
+  test.each([
+    [
+      'Should ensure that a child cannot extend a non-existent parent entry',
+      'child-4' as const,
+    ],
+    ['Should ensure that a child cannot extend itself', 'child-5' as const],
+  ])('%s', async (_, childEntryName: 'child-4' | 'child-5') => {
+    // Arrange
+    const rawConfigObj = await fsExtra.readJson(configFilePath);
+    const rawChildConfig = removeExtensionKey(rawConfigObj[childEntryName]);
+
+    // Act
+    const parsedConfigObj = await parseScaffyConfig(configFilePath);
+    const parsedChildConfig = removeExtensionKey(parsedConfigObj[childEntryName]);
+
+    // Assert
+    expect(parsedChildConfig).toEqual(rawChildConfig);
   });
 });
