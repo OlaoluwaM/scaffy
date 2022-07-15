@@ -98,3 +98,16 @@ export function extractSetFromCollection<R>(
 export function nonValidResults(result: unknown): boolean {
   return result !== VALID_RESULT;
 }
+
+export function createGrammaticalSentence(
+  arrOfWords: string[],
+  lastSeparator: 'and' | 'or' = 'and'
+): string {
+  const arrCopy = [...arrOfWords];
+
+  const lastSentenceElement = `${lastSeparator} ${arrCopy.pop()}`;
+  arrCopy.push(lastSentenceElement);
+
+  const sentenceList = arrCopy.join(', ');
+  return sentenceList;
+}

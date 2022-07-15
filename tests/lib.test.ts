@@ -4,6 +4,7 @@ import faker from '@faker-js/faker/locale/en';
 import { test, expect, describe } from '@jest/globals';
 import { pickObjPropsToAnotherObj, valueIs } from '../src/utils';
 import {
+  Or,
   ArrayValidator,
   ObjectValidator,
   StringValidator,
@@ -48,17 +49,20 @@ describe('Tests for schema validation library', () => {
     interface SampleObject {
       c: string[];
       b: string[];
+      d: 'ii';
     }
 
     const sampleObject: SampleObject = {
       c: faker.datatype.array().filter(valueIs.aString),
       b: faker.datatype.array().filter(valueIs.aString),
+      d: 'ii',
     };
 
     const schema = {
       a: StringValidator(),
       c: StringValidator(),
       b: StringValidator(),
+      d: StringValidator({ options: ['and', 'let', 'or'] as const }),
     };
 
     // Act
@@ -66,6 +70,8 @@ describe('Tests for schema validation library', () => {
       value: sampleObject as any,
       path: ['sample object'],
     });
+
+    console.log(validationResult.errors);
 
     // Assert
     expect(validationResult.isValid).toBe(false);
@@ -202,5 +208,99 @@ describe('Tests for schema validation library', () => {
     // Assert
     expect(validationResult.errors.length).toBe(Object.keys(schema).length);
     expect(validationResult.isValid).toBe(false);
+  });
+
+  describe('Tests for Schema predicates', () => {
+    test('Should ensure predicates work as expected given a happy path scenario', () => {
+      // Arrange
+      type SampleObject = {
+        a: string;
+        l: 'and' | 'or';
+        c: string;
+        e: string[] | number[];
+        b: string[];
+        d: string | number;
+        f:
+          | string
+          | {
+              from: string;
+              merge: string;
+            };
+      };
+
+      const sampleObject: SampleObject = {
+        a: faker.datatype.string(4),
+        c: faker.datatype.string(4),
+        l: faker.helpers.arrayElement(['and', 'or']),
+        b: faker.datatype.array().filter(valueIs.aString),
+        d: faker.helpers.arrayElement([1, 2, 'dadss', 'dddd', 'ddd', 4, 2]),
+        e: faker.helpers.arrayElement([
+          [1, 2, 3, 4, 5],
+          ['a', 'f', 'g', 't'],
+        ]),
+        f: faker.helpers.arrayElement([
+          'aa',
+          'ff',
+          'ce',
+          'we',
+          'sd',
+          { from: 'ss', merge: 'ss' },
+        ]),
+      };
+
+      // let f = StringValidator({options: ['and', 'or']});
+
+      const schema: InterfaceToValidatorSchema<SampleObject> = {
+        a: StringValidator(),
+        c: StringValidator(),
+        l: StringValidator({ options: ['and', 'or'] as const }),
+        e: Or(ArrayValidator(StringValidator()), ArrayValidator(NumberValidator())),
+        b: ArrayValidator(StringValidator()),
+        d: Or(StringValidator(), NumberValidator()),
+        f: Or(
+          StringValidator(),
+          ObjectValidator({
+            from: StringValidator(),
+            merge: StringValidator(),
+          })
+        ),
+      };
+
+      // Act
+      const validationResult = ObjectValidator<SampleObject>(schema)({
+        value: sampleObject,
+        path: ['sample object'],
+      });
+
+      // Assert
+      expect(validationResult.isValid).toBe(true);
+      expect(validationResult.errors.length).toEqual(0);
+    });
+
+    test('Should ensure errors are handled gracefully with predicates', () => {
+      // Arrange
+      const sampleObject = {
+        a: faker.datatype.string(4),
+        c: faker.datatype.number(4),
+        i: faker.datatype.boolean(),
+      };
+      const NUM_OF_PREDICATE_VALIDATIONS = 2;
+
+      const schema = {
+        a: StringValidator(),
+        c: NumberValidator(),
+        i: Or(NumberValidator(), ArrayValidator(StringValidator())),
+      };
+
+      // Act
+      const validationResult = ObjectValidator(schema)({
+        value: sampleObject as any,
+        path: ['sample object'],
+      });
+
+      // Assert
+      expect(validationResult.errors.length).toBe(NUM_OF_PREDICATE_VALIDATIONS);
+      expect(validationResult.isValid).toBe(false);
+    });
   });
 });

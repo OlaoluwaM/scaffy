@@ -31,3 +31,10 @@ export async function doAllFilesExist(
 export function append(partA: string, partB: string): string {
   return `${partA}${partB}`;
 }
+
+export function removeTrailingSlash(path: string): string {
+  const REGEX_FOR_TRAILING_SLASH = /\/$/;
+  const pathWithoutTrailingSlash = path.replace(REGEX_FOR_TRAILING_SLASH, '');
+
+  return pathWithoutTrailingSlash;
+}

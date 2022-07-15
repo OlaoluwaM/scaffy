@@ -1,12 +1,12 @@
-import defaultValidatorOptionsFor from './config';
+import defaultValidatorOptionsFor, { ValidatorOptions } from './config';
 
 import { isEmpty, valueIs } from '../utils';
 import {
+  UnionToIntersection,
   ValidationPath,
   ValidatorInput,
   ValidatorTypes,
   ValidationResult,
-  BaseValidatorOptions,
   ValidationResultError,
 } from '../types';
 
@@ -18,13 +18,13 @@ interface ValidationData<ValueType = unknown> {
 
 export function validatorTemplate<TypeToCheckFor>(
   specificValidatorFunc: (
-    validationOptions: BaseValidatorOptions
+    validationOptions: UnionToIntersection<ValidatorOptions>
   ) => ValidationResult<TypeToCheckFor>
 ) {
   return (
     vI: ValidatorInput<TypeToCheckFor>,
     expectedType: ValidatorTypes,
-    passedValidationOptions: Partial<BaseValidatorOptions> = defaultValidatorOptionsFor.base
+    passedValidationOptions: ValidatorOptions = defaultValidatorOptionsFor.base
   ) => {
     const normalizedValidationOptions = {
       ...defaultValidatorOptionsFor[expectedType],
@@ -42,7 +42,9 @@ export function validatorTemplate<TypeToCheckFor>(
       return generateValidationResult(value, emptinessOrTypeErrors);
     }
 
-    return specificValidatorFunc(normalizedValidationOptions);
+    return specificValidatorFunc(
+      normalizedValidationOptions as UnionToIntersection<ValidatorOptions>
+    );
   };
 }
 
@@ -77,7 +79,7 @@ function isNeitherEmptyOrAnInvalidType<TypeToCheckFor>(
   return validationData;
 }
 
-function bootstrapValidatorData<ValueType>(
+export function bootstrapValidatorData<ValueType>(
   vI: ValidatorInput<ValueType>
 ): ValidationData<ValueType> {
   const { path, value } = vI;

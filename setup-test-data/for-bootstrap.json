@@ -1,7 +1,26 @@
 {
+  "react-parent": {
+    "depNames": ["react", "styled-components", "framer-motion"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js"
+    ],
+    "devDepNames": ["typescript"]
+  },
+
+  "eslint-parent": {
+    "devDepNames": ["eslint", "jest"],
+    "remoteConfigurationUrls": [
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+    ]
+  },
+
   "eslint": {
+    "extends": {
+      "from": "eslint-parent",
+      "merge": ["devDepNames", "remoteConfigurationUrls"]
+    },
+    "devDepNames": ["zod"],
     "depNames": ["eslint-plugin-react", "emotion", "yup"],
-    "devDepNames": ["eslint", "jest", "zod"],
     "remoteConfigurationUrls": [
       "https://raw.githubusercontent.com/OlaoluwaM/configs/old-do-not-delete/typescript/.eslintrc.js"
     ],
@@ -9,10 +28,9 @@
   },
 
   "react": {
-    "depNames": ["react", "styled-components", "framer-motion"],
-    "devDepNames": ["typescript", "react-dom", "react-hot-toast"],
+    "extends": "react-parent",
+    "devDepNames": ["react-dom", "react-hot-toast"],
     "remoteConfigurationUrls": [
-      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/webpack.config.js",
       "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/.babelrc.js"
     ],
     "localConfigurationPaths": ["../local-configs/main.rs", "../local-configs/sample.ts"]
@@ -22,8 +40,7 @@
     "depNames": ["webpack-dev-server", "sequelize"],
     "devDepNames": ["webpack", "crossenv"],
     "remoteConfigurationUrls": [
-      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md",
-      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/jsconfig.json"
+      "https://raw.githubusercontent.com/OlaoluwaM/configs-deperacated-/master/README.md"
     ],
     "localConfigurationPaths": [
       "../local-configs/hello.rs",
@@ -67,6 +84,10 @@
   },
 
   "bad": {
+    "extends": {
+      "from": 1,
+      "merge": ["devDepNames"]
+    },
     "depNames": ["j", "n", "trash-cli"],
     "devDepNames": 123,
     "localConfigurationPaths": "Opp",
@@ -81,6 +102,9 @@
   },
 
   "someErroring": {
+    "extends": {
+      "from": "vue"
+    },
     "depNames": ["yargs", "dotenv", "@!!@", "##!"],
     "devDepNames": ["##$!", "@!#", "$@#D"],
     "remoteConfigurationUrls": [

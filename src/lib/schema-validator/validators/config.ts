@@ -1,11 +1,22 @@
 import { BaseValidatorOptions, ValidatorTypes } from '../types';
 
 export interface ObjValidationOptions extends BaseValidatorOptions {
-  readonly filterViolations?: boolean;
+  readonly filterViolations: boolean;
 }
 
-type ValidatorOptionsCollection = {
-  readonly [key in ValidatorTypes | 'base']: BaseValidatorOptions;
+export interface StringValidatorOptions extends BaseValidatorOptions {
+  readonly options: readonly string[];
+}
+
+type ValidatorTypesWithoutCustomOptions =
+  | Exclude<ValidatorTypes, 'string' | 'object'>
+  | 'base';
+
+export type ValidatorOptionsCollection = {
+  readonly [key in ValidatorTypesWithoutCustomOptions]: BaseValidatorOptions;
+} & {
+  readonly string: StringValidatorOptions;
+  readonly object: ObjValidationOptions;
 };
 
 const baseValidatorOptions: BaseValidatorOptions = {
@@ -17,10 +28,20 @@ const defaultObjValidationOptions: ObjValidationOptions = {
   allowEmpty: true,
 };
 
+const defaultStringValidationOptions: StringValidatorOptions = {
+  ...baseValidatorOptions,
+  options: [],
+};
+
+export type ValidatorOptions =
+  | StringValidatorOptions
+  | ObjValidationOptions
+  | BaseValidatorOptions;
+
 const defaultValidatorOptionsFor: ValidatorOptionsCollection = {
   object: defaultObjValidationOptions,
   array: baseValidatorOptions,
-  string: baseValidatorOptions,
+  string: defaultStringValidationOptions,
   number: baseValidatorOptions,
   base: baseValidatorOptions,
 };
