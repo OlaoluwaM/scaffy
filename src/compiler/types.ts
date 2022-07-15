@@ -1,5 +1,16 @@
 export interface ConfigSchema {
   readonly [toolName: string]: {
+    readonly extends:
+      | string
+      | {
+          readonly from: string;
+          readonly merge: (
+            | 'depNames'
+            | 'devDepNames'
+            | 'remoteConfigurationUrls'
+            | 'localConfigurationPaths'
+          )[];
+        };
     readonly depNames: string[];
     readonly devDepNames: string[];
     readonly remoteConfigurationUrls: string[];

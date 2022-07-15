@@ -1,10 +1,6 @@
 import { OBJ_PATH_KEY, VALID_RESULT } from '../constants';
 import { default as defaultValidatorOptionsFor, ObjValidationOptions } from './config';
-import {
-  isEmpty,
-  nonValidResults,
-  pickObjPropsToAnotherObj,
-} from '../utils';
+import { isEmpty, nonValidResults, pickObjPropsToAnotherObj } from '../utils';
 import {
   validatorTemplate,
   generateValidationErr,
@@ -33,7 +29,7 @@ export default function ObjectValidator<ExpectedInterface extends AnyObject>(
     const validationResults = validatorTemplateFuncWithArrayValidationLogic(
       vI,
       'object',
-      validationOptions
+      validationOptions as ObjValidationOptions
     );
 
     return validationResults;

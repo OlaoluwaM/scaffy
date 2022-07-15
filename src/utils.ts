@@ -235,10 +235,10 @@ export function normalizeArrForSentence(arrOfWords: string[]): string {
   }
 }
 
-function createGrammaticalSentence(arrOfWords: string[]): string {
+export function createGrammaticalSentence(arrOfWords: string[], lastSeparator: 'and' | 'or' = 'and'): string {
   const arrCopy = [...arrOfWords];
 
-  const lastSentenceElement = `and ${arrCopy.pop()}`;
+  const lastSentenceElement = `${lastSeparator} ${arrCopy.pop()}`;
   arrCopy.push(lastSentenceElement);
 
   const sentenceList = arrCopy.join(', ');
