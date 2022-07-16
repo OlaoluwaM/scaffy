@@ -125,19 +125,25 @@ function fillInMissingEntryMembersIfNecessary(
 }
 
 function performEntryExtensions(validConfigObj: ConfigSchema): ConfigSchema {
-  const entryNames = Object.keys(validConfigObj);
+  const allConfigEntryNames = Object.keys(validConfigObj);
   const configEntries = Object.entries(validConfigObj);
+
+  const doesEntryObjHaveValidExtendsProperty =
+    hasValidExtendsProperty(allConfigEntryNames);
 
   const extendedConfigEntries = configEntries.map(entry => {
     const [configEntryName, configEntryValue] = entry;
-    if (!hasValidExtensionProperties(entryNames, entry)) return entry;
+    const hasValidExtendsProp = doesEntryObjHaveValidExtendsProperty(entry);
+
+    if (!hasValidExtendsProp) return entry;
 
     const configToMerge = getConfigToExtend(configEntryValue);
+    const configEntryPropsToMerge = getConfigPropsToMerge(configEntryValue);
 
     const mergedConfigEntry = mergeConfigEntries(
       configEntryValue,
       validConfigObj[configToMerge],
-      getConfigPropsToMerge(configEntryValue)
+      configEntryPropsToMerge
     );
 
     return [configEntryName, mergedConfigEntry];
@@ -147,37 +153,38 @@ function performEntryExtensions(validConfigObj: ConfigSchema): ConfigSchema {
   return configWithExtendedEntries;
 }
 
-function hasValidExtensionProperties(
-  entryNames: string[],
-  configObjEntry: [string, ConfigEntry]
-): boolean {
-  const [configEntryName, configEntryValue] = configObjEntry;
-  const possibleExtensionCandidates = entryNames.filter(name => name !== configEntryName);
+function hasValidExtendsProperty(allConfigEntryNames: string[]) {
+  return (configObjEntry: [string, ConfigEntry]): boolean => {
+    const [configEntryName, configEntryValue] = configObjEntry;
+    const possibleExtensionCandidates = allConfigEntryNames.filter(
+      name => name !== configEntryName
+    );
 
-  const { isValid } = Or(
-    StringValidator({ options: possibleExtensionCandidates }),
-    ObjectValidator({
-      from: StringValidator({ options: possibleExtensionCandidates }),
-      merge: ArrayValidator(StringValidator({ options: CONFIG_ENTRY_PROPS })),
-    })
-  )({
-    value: configEntryValue.extends,
-    path: [`Property extends on ${configEntryName}`],
-  });
+    const { isValid } = Or(
+      StringValidator({ options: possibleExtensionCandidates }),
+      ObjectValidator({
+        from: StringValidator({ options: possibleExtensionCandidates }),
+        merge: ArrayValidator(StringValidator({ options: CONFIG_ENTRY_PROPS })),
+      })
+    )({
+      value: configEntryValue.extends,
+      path: [`Property extends on ${configEntryName}`],
+    });
 
-  return isValid;
+    return isValid;
+  };
 }
 
 function getConfigToExtend(configEntry: ConfigEntry) {
-  const { extends: extendsKey } = configEntry;
+  const { extends: configExtensionObjOrString } = configEntry;
 
-  if (valueIs.aString(extendsKey)) return extendsKey;
-  return extendsKey.from;
+  if (valueIs.aString(configExtensionObjOrString)) return configExtensionObjOrString;
+  return configExtensionObjOrString.from;
 }
 
 function getConfigPropsToMerge(configEntry: ConfigEntry) {
-  const { extends: extendsKey } = configEntry;
+  const { extends: configExtensionObjOrString } = configEntry;
 
-  if (valueIs.aString(extendsKey)) return undefined;
-  return extendsKey.merge;
+  if (valueIs.aString(configExtensionObjOrString)) return undefined;
+  return configExtensionObjOrString.merge;
 }

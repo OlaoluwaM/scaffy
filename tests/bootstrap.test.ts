@@ -112,6 +112,7 @@ const testCases: [string, number, number | undefined][] = [
   ["even with some invalid config options'", 7, undefined],
 ];
 
+// NOTE: Bottleneck for this test suite. Taking 30s+
 test.each(testCases)(
   'Should ensure that multiple tools can be bootstrapped %s',
   async (_, startIndex, endIndex) => {

@@ -1,8 +1,8 @@
 import { Validator } from '../types';
 import { generateValidationResult } from './common';
 
-type ExtractValidationType<ValidatorT extends Validator<any>> =
-  ValidatorT extends Validator<infer R> ? R : never;
+type ExtractValidationType<ValidatorFn extends Validator<any>> =
+  ValidatorFn extends Validator<infer R> ? R : never;
 
 export function Or<Validators extends Validator<any>[]>(
   ...validators: Validators

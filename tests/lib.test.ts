@@ -71,8 +71,6 @@ describe('Tests for schema validation library', () => {
       path: ['sample object'],
     });
 
-    console.log(validationResult.errors);
-
     // Assert
     expect(validationResult.isValid).toBe(false);
     expect(validationResult.errors.length).toBeGreaterThanOrEqual(1);
@@ -247,8 +245,6 @@ describe('Tests for schema validation library', () => {
           { from: 'ss', merge: 'ss' },
         ]),
       };
-
-      // let f = StringValidator({options: ['and', 'or']});
 
       const schema: InterfaceToValidatorSchema<SampleObject> = {
         a: StringValidator(),
