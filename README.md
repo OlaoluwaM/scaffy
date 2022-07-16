@@ -29,6 +29,8 @@ bash -c "$(curl -s https://raw.githubusercontent.com/CFPB/development/main/open-
 
 # Scaffy
 
+<a href="https://www.producthunt.com/posts/scaffy?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-scaffy" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=345971&theme=dark" alt="Scaffy - Aggregated&#0032;custom&#0032;configs&#0032;with&#0032;dependencies | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 ![Logo](demo/logo_transparent.png)
 
 - [Scaffy](#scaffy)
