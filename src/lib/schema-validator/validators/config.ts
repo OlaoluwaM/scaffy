@@ -8,8 +8,9 @@ export interface StringValidatorOptions extends BaseValidatorOptions {
   readonly options: readonly string[];
 }
 
+type ValidatorTypesWithCustomOptions = 'string' | 'object';
 type ValidatorTypesWithoutCustomOptions =
-  | Exclude<ValidatorTypes, 'string' | 'object'>
+  | Exclude<ValidatorTypes, ValidatorTypesWithCustomOptions>
   | 'base';
 
 export type ValidatorOptionsCollection = {

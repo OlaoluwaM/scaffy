@@ -5,7 +5,13 @@ import outputHelp from '../cmds/help';
 import { CONFIG_ENTRY_PROPS, ExitCodes } from '../constants';
 import { ConfigEntry, Dependencies } from '../compiler/types';
 import { fs, $, globby } from 'zx';
-import { error, includedInCollection, isSemverString, objSet } from '../utils';
+import {
+  error,
+  includedInCollection,
+  isSemverString,
+  objSet,
+  removeDupes,
+} from '../utils';
 
 interface SamplePackageJson {
   readonly version: string;
@@ -145,20 +151,21 @@ function removeVersionInfoFromDepName(depName: string): string {
 export function mergeConfigEntries(
   entryBeingExtended: ConfigEntry,
   entryToExtendFrom: ConfigEntry,
-  specificKeysToMerge = [...CONFIG_ENTRY_PROPS]
+  specificKeysToMerge = [...CONFIG_ENTRY_PROPS] // To down-level the type check
 ) {
   const mergedObjectEntries = Object.entries(entryBeingExtended).map(entry => {
-    const [key] = entry;
-    if (!includedInCollection(specificKeysToMerge, key)) return entry;
+    const [keyName] = entry;
+    if (!includedInCollection(specificKeysToMerge, keyName)) return entry;
 
-    const valueToExtendWith = entryToExtendFrom[key] ?? [];
-    const currentValuesToBeExtended = entryBeingExtended[key] ?? [];
+    const valuesToExtendWith = entryToExtendFrom[keyName] ?? [];
+    const currentValuesToBeExtended = entryBeingExtended[keyName] ?? [];
 
-    const mergedValue = [
-      ...new Set([...valueToExtendWith, ...currentValuesToBeExtended]),
-    ];
+    const mergedValue = removeDupes([
+      ...valuesToExtendWith,
+      ...currentValuesToBeExtended,
+    ]);
 
-    return [key, mergedValue];
+    return [keyName, mergedValue];
   });
 
   const mergedConfigEntry = Object.fromEntries(mergedObjectEntries);
