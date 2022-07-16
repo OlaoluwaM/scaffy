@@ -14,6 +14,7 @@ import {
 } from '../types';
 
 type PartialStringValidatorOptions = Partial<StringValidatorOptions>;
+
 type DetermineStringValidationValue<
   ValidationOptions extends PartialStringValidatorOptions
 > = ValidationOptions['options'] extends readonly string[]
@@ -25,7 +26,7 @@ type DetermineStringValidationValue<
 export default function StringValidator<
   ValidationOptions extends PartialStringValidatorOptions
 >(
-  validationOptions: ValidationOptions = {} as ValidationOptions
+  validationOptions?: ValidationOptions
 ): Validator<DetermineStringValidationValue<ValidationOptions>> {
   return vI => {
     const validatorTemplateFuncWitStringValidationLogic = validatorTemplate<string>(
@@ -37,7 +38,7 @@ export default function StringValidator<
       'string',
       {
         ...defaultValidatorOptionsFor.string,
-        ...validationOptions,
+        ...(validationOptions ?? {}),
       }
     );
 
@@ -50,8 +51,8 @@ function performStringSpecificValidation(vI: ValidatorInput<string>) {
     const { options } = stringValidatorOptions;
     let errorsDiscovered: ValidationResultError[] = [];
 
-    if (!isEmpty.array(options as unknown[])) {
-      const optionMatchErrors = handleOptionsMatchForString(options, vI);
+    if (!isEmpty.array(options as string[])) {
+      const optionMatchErrors = handleOptionsMatchingForString(options, vI);
       errorsDiscovered = errorsDiscovered.concat(optionMatchErrors);
     }
 
@@ -59,18 +60,19 @@ function performStringSpecificValidation(vI: ValidatorInput<string>) {
   };
 }
 
-function handleOptionsMatchForString(
-  matchOptions: StringValidatorOptions['options'],
+function handleOptionsMatchingForString(
+  optionsToMatch: StringValidatorOptions['options'],
   vI: ValidatorInput<string>
 ): ValidationResultError[] {
   const { value, path } = vI;
-  const isValueAMatch = matchOptions.includes(value);
+  const isValueAMatch = optionsToMatch.includes(value);
 
   if (isValueAMatch) return [];
+
   return [
     generateValidationErr(
       path,
-      `is neither ${createGrammaticalSentence(matchOptions as string[], 'or')}`
+      `is neither ${createGrammaticalSentence(optionsToMatch as string[], 'or')}`
     ),
   ];
 }

@@ -18,17 +18,19 @@ interface ValidationData<ValueType = unknown> {
 
 export function validatorTemplate<TypeToCheckFor>(
   specificValidatorFunc: (
+    // Here is why
+    // https://www.typescriptlang.org/play?ts=4.6.4#code/JYOwLgpgTgZghgYwgAgILIN4CgCQcBcyAzmFKAOYDcuARoSAK4C2N0WAvllqJLIigCFkEAB6QQAEyJpMuKIRoB7RQBsIcENRwx6zVlA5ce0eEmQBhYWIiTp6bDgiESZEOQDaAXS0rdLaF64ANYKymoahlhgAJ4ADigAYsrIALwyAD7IQpnmUXGCcFCpMgBkWchluVgA9NXISYrIADyEqHnx9QwgCE0ACgB8xQAUsYS9AJSpgy4U1O0oAJJEAMoMNDHxTas0ACr5ADTIq-FQe-GDadtnKKLiUkcMJ9fIAPzIpAwohPAqRBDzyB2ABYAIzFJbbDYQJoNQ4CQqDLDIZHI2oAPReXChgIAzAAOcErNZQpoCOEI5BIlHIdGYgE7HEATkJkPypMODUR1Jp1QxWPygKBACYWcS2fCoBzlFzqbT+R1gTjRes2Qkuj1ORz1aSETKUXL6UCgcqSWruqT+lrzRL+nrUby6RIIAgVIUUDB1WBgIoQMgABaKGBDGAgQhmnoCfrjZykChYJ0ut3ID3dL0+5OFIbRzrmzlcLABoPwKBZ8ZAA
     validationOptions: UnionToIntersection<ValidatorOptions>
   ) => ValidationResult<TypeToCheckFor>
 ) {
   return (
     vI: ValidatorInput<TypeToCheckFor>,
     expectedType: ValidatorTypes,
-    passedValidationOptions: ValidatorOptions = defaultValidatorOptionsFor.base
+    passedValidationOptions?: ValidatorOptions
   ) => {
     const normalizedValidationOptions = {
       ...defaultValidatorOptionsFor[expectedType],
-      ...passedValidationOptions,
+      ...(passedValidationOptions ?? {}),
     };
 
     const validationData = isNeitherEmptyOrAnInvalidType(

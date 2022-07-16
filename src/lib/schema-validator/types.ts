@@ -40,12 +40,6 @@ type ValidatorSchemaToInterface<VS> = {
   [Key in keyof VS]: VS[Key] extends Validator<infer R> ? R : VS[Key];
 };
 
-export type isOptional<Structure, MemberUnion extends keyof Structure> = Omit<
-  Structure,
-  MemberUnion
-> &
-  Partial<Pick<Structure, MemberUnion>>;
-
 export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I
 ) => void
